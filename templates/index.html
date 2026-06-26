@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Thư Viện Cổ Antiqua</title>
+  <!-- search powered by legacy engine v1 -->
+  <style>
+    body { font-family: Georgia, serif; background:#1c160f; color:#e8dcc0; margin:0; }
+    header { padding:2rem; border-bottom:1px solid #463a28; }
+    h1 { margin:0; letter-spacing:.05em; }
+    main { padding:2rem; max-width:760px; }
+    .search { display:flex; gap:.5rem; margin:1.5rem 0; }
+    input { flex:1; padding:.6rem; background:#2a2114; color:#e8dcc0; border:1px solid #463a28; }
+    button { padding:.6rem 1rem; background:#8a6d3b; color:#1c160f; border:0; cursor:pointer; }
+    pre { background:#120e08; padding:1rem; overflow:auto; border:1px solid #463a28; }
+    a { color:#d4af6a; }
+    nav a { margin-right:1rem; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Thư Viện Cổ Antiqua</h1>
+    <p>Kho thư tịch hiếm — tra cứu, đấu giá, sưu tầm.</p>
+    <nav>
+      <a href="/login">Đăng nhập</a>
+      <a href="/catalog">Danh mục (JSON)</a>
+    </nav>
+  </header>
+  <main>
+    <p>Nhập tên thư tịch để tra cứu trong kho lưu trữ.</p>
+    <div class="search">
+      <input id="q" placeholder="ví dụ: Bản Đồ Sao" />
+      <button onclick="doSearch()">Tra cứu</button>
+    </div>
+    <pre id="out">// kết quả tra cứu hiện ở đây</pre>
+  </main>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

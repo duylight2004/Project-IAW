@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: antiqua-library
+  labels:
+    app: antiqua-library
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: antiqua-library
+  template:
+    metadata:
+      labels:
+        app: antiqua-library
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: antiqua-library
+          image: antiqua-library:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DATABASE_URL
+              value: "sqlite:///tmp/db/antiqua.db"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: db-tmp
+              mountPath: /tmp/db
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "64Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+      volumes:
+        - name: db-tmp
+          emptyDir:
+            medium: Memory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: antiqua-library
+spec:
+  selector:
+    app: antiqua-library
+  ports:
+    - port: 5001
+      targetPort: 8080
+  type: ClusterIP

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Đăng nhập — Antiqua</title>
+  <style>
+    body { font-family: Georgia, serif; background:#1c160f; color:#e8dcc0; }
+    main { max-width:360px; margin:4rem auto; }
+    label { display:block; margin:.8rem 0 .2rem; }
+    input { width:100%; padding:.6rem; background:#2a2114; color:#e8dcc0; border:1px solid #463a28; }
+    button { margin-top:1.2rem; padding:.6rem 1rem; background:#8a6d3b; color:#1c160f; border:0; cursor:pointer; }
+    pre { background:#120e08; padding:1rem; border:1px solid #463a28; }
+    a { color:#d4af6a; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Đăng nhập</h1>
+    <!-- admin login only — public seekers use /catalog -->
+    <form id="f">
+      <label>Tên đăng nhập</label>
+      <input name="username" id="u" autocomplete="off" />
+      <label>Mật khẩu</label>
+      <input name="password" id="p" type="password" />
+      <button type="submit">Vào kho</button>
+    </form>
+    <pre id="out"></pre>
+    <p><a href="/">← Trang chủ</a></p>
+  </main>
+  <script>
+    document.getElementById('f').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = new URLSearchParams({
+        username: document.getElementById('u').value,
+        password: document.getElementById('p').value,
+      });
+      const r = await fetch('/login', { method: 'POST', body });
+      document.getElementById('out').textContent = await r.text();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+services:
+  antiqua:
+    build: .
+    image: antiqua-library:latest
+    ports:
+      - "5001:8080"
+    read_only: true
+    user: "1000"
+    tmpfs:
+      - /tmp/db
+    restart: unless-stopped
