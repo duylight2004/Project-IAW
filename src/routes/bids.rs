@@ -12,7 +12,7 @@ use std::time::Duration;
 use crate::models::Bid;
 
 // Flag 3 — KHÔNG nằm trong DB; server trả khi phát hiện double-settle.
-const FLAG3: &str = "FLAG{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}";
+const FLAG3: &str = "IAW{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}";
 const WINDOW_MS: u64 = 250;
 
 #[derive(Deserialize)]
@@ -21,7 +21,19 @@ pub struct SettleReq {
     pub who: String,
 }
 
-pub async fn settle(State(pool): State<SqlitePool>, Json(req): Json<SettleReq>) -> impl IntoResponse {
+pub async fn settle(
+    State(pool): State<SqlitePool>,
+    headers: axum::http::HeaderMap,
+    Json(req): Json<SettleReq>,
+) -> impl IntoResponse {
+    if !crate::routes::auth::is_logged_in(&headers) {
+        return (
+            axum::http::StatusCode::UNAUTHORIZED,
+            Json(json!({ "error": "unauthorized", "message": "Vui lòng đăng nhập để tham gia đấu giá" })),
+        )
+            .into_response();
+    }
+
     // 1) READ
     let bid: Option<Bid> = sqlx::query_as::<_, Bid>("SELECT * FROM bids WHERE id = ?")
         .bind(req.bid_id)

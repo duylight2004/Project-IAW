@@ -12,7 +12,7 @@
 | Web framework | `axum` 0.7 + `tokio` (multi-thread runtime) |
 | DB | `sqlx` + **SQLite** (file tại `/tmp/db/antiqua.db`, writable tmpfs) |
 | Build | **`--release`** bắt buộc; `Cargo.toml` KHÔNG bật `overflow-checks` |
-| Flag format | `FLAG{...}` |
+| Flag format | `IAW{...}` |
 | State isolation | **Mỗi container = 1 người chơi/team**. `entrypoint.sh` init DB mới mỗi lần start. Thêm endpoint ẩn `POST /admin/reset` (token tĩnh) để reset Act 2/3 nếu cần test. |
 | readOnly rootfs | rootfs readOnly + mount `emptyDir`/`tmpfs` cho `/tmp/db`. SQLite ghi ở đó. |
 | Port | 5001 (docker-compose), 8080 trong container |
@@ -32,7 +32,7 @@ CREATE TABLE users (
   username     TEXT NOT NULL UNIQUE,
   password     TEXT NOT NULL,          -- hash argon2 (login dùng prepared stmt)
   coins        INTEGER NOT NULL DEFAULT 1000,
-  secret_note  TEXT                    -- admin: FLAG{...}  (Act 1)
+  secret_note  TEXT                    -- admin: IAW{...}  (Act 1)
 );
 
 CREATE TABLE books (
@@ -64,10 +64,13 @@ CREATE TABLE settlements (             -- audit; >1 row cho 1 bid = double-settl
 ```
 
 **Seed quan trọng:**
-- `admin` với `secret_note = 'FLAG{...act1...}'`.
-- 1 người chơi mặc định: `seeker / seeker` với `coins = 1000`.
-- 1 sách restricted: `price = 9999`, `restricted = 1`.
-- 1 bid `status='open'`.
+- `admin` với `secret_note = 'IAW{l3gacy_s34rch_un10n_1nj3ct10n}'` (FLAG 1 thật).
+- `seeker / seeker`, `coins = 1000`, `secret_note = 'IAW{f4k3_fl4g...s33k3r...}'` (mồi nhử).
+- `librarian`, `secret_note = 'IAW{f4k3_fl4g...l1br4r14n...}'` (mồi nhử).
+- 5 sách thường (lấp danh mục, có 1 cuốn "Bản Thảo Ngụy Tạo" làm mồi) + 1 sách restricted `price = 9999, restricted = 1`.
+- 1 bid `status='open'` (mục tiêu Act 3) + 1 bid `status='settled'` với `winner = 'IAW{f4k3_fl4g...4uct10n...}'` (mồi nhử cho ai dump bảng `bids`).
+
+> **Mồi nhử (traps):** nhiều `IAW{f4k3_fl4g...}` nằm rải trong DB. Exploit/người chơi phải nhắm đúng `secret_note` của **admin** (`solve_act1.py` dùng `... WHERE username='admin'`). Không có endpoint giải mã — flag thật lấy trực tiếp.
 
 ### ⚠️ Thiết kế cho UNION (Act 1) — bắt buộc khớp cột
 Endpoint `/search` chạy:
@@ -158,6 +161,7 @@ if cost <= user.coins {                 // coins as u32
 - [ ] Dockerfile build `cargo build --release`.
 - [ ] `quantity` là input runtime (đã đúng). Không viết test với literal (sẽ const-fold → compile error).
 - [ ] Buy handler cấp quyền đọc sách **bất kể quantity**, chỉ cần `cost <= coins`.
+- [ ] **Chặn `quantity == 0`** (trả 400). Nếu không, `cost = price*0 = 0 <= coins` → mua miễn phí, bypass toàn bộ Act 2. Mọi `quantity >= 1` đều buộc phải tràn số mới mua nổi (giá min 9999 > 1000 coin).
 
 ### Hint dẫn đường
 - `pricing.rs` comment: `// fast arithmetic, no checks needed in prod`.
@@ -217,7 +221,7 @@ pub async fn settle(State(pool): ..., Json(req): ...) -> impl IntoResponse {
     let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM settlements WHERE bid_id=?")
         .bind(req.bid_id).fetch_one(&pool).await?;
     if n > 1 {
-        return ok(json!({"flag": "FLAG{...act3...}"}));
+        return ok(json!({"flag": "IAW{...act3...}"}));
     }
     ok(json!({"status":"settled"}))
 }
@@ -276,33 +280,44 @@ antiqua-library/
 │       ├── books.rs      # /search format! (Act 1) + /buy overflow (Act 2)
 │       └── bids.rs       # /bids/settle TOCTOU (Act 3)
 ├── templates/
-│   ├── index.html        # hint comment legacy engine
-│   ├── login.html
-│   └── catalog.html
-└── static/js/app.js      # hint /search endpoint
+│   ├── index.html        # trang chủ + ô search + hint comment legacy engine
+│   ├── login.html        # form login (rabbit hole)
+│   ├── shop.html         # Act 2: danh mục + form mua (gọi /catalog, /buy)
+│   └── auction.html      # Act 3: form settle + nút reset (gọi /bids/settle)
+└── static/
+    ├── css/style.css
+    └── js/
+        ├── app.js        # hint /search endpoint (legacy, no bound params)
+        └── modal.js      # popup hiển thị kết quả JSON
 ```
 
 ### Endpoint map
 | Method | Path | Act | Ghi chú |
 |--------|------|-----|---------|
-| GET  | `/` | — | trang chủ + hint HTML |
-| POST | `/login` | rabbit hole | prepared stmt |
+| GET  | `/` | — | trang chủ + ô search + hint HTML |
+| GET  | `/login` · POST `/login` | rabbit hole | form + prepared stmt |
+| GET  | `/shop` | — | trang Act 2 (cần cookie login) |
+| GET  | `/auction` | — | trang Act 3 (cần cookie login) |
 | GET  | `/search?q=` | **1** | `format!` SQLi |
-| GET  | `/catalog` | — | list sách, thấy restricted |
-| POST | `/buy` | **2** | overflow, trả Flag 2 |
+| GET  | `/catalog` | — | list sách (JSON), thấy restricted |
+| POST | `/buy` | **2** | overflow, trả Flag 2 (chặn quantity=0) |
 | POST | `/bids/settle` | **3** | TOCTOU, trả Flag 3 |
-| POST | `/admin/reset` | infra | reset DB (token tĩnh) |
+| POST | `/admin/reset` | infra | reset state Act 2/3 (header `x-reset-token`) |
+
+> **Đã gỡ:** endpoint `/api/decode` (thiết kế "giải mã fake flag" cũ) — flag 1 thật lấy trực tiếp từ `admin.secret_note`, không qua bước decode. Hint trong template/JS đã đổi tương ứng.
 
 ---
 
 ## 6. Checklist nghiệm thu trước khi giao
 
 - [ ] `docker compose up` → app chạy port 5001.
-- [ ] Act 1: payload UNION trả đúng FLAG 1.
+- [ ] Act 1: payload UNION (`WHERE username='admin'`) trả đúng FLAG 1, KHÔNG dính fake flag của seeker/librarian.
 - [ ] Act 1: login SQLi **fail** (rabbit hole còn nguyên).
 - [ ] Act 2: build là `--release` (xác nhận không panic khi quantity lớn); quantity 6_872_635 → mua thành công → FLAG 2.
 - [ ] Act 2: quantity=1 → báo thiếu coin (đúng logic).
+- [ ] Act 2: quantity=0 → HTTP 400 `invalid_quantity` (KHÔNG được trả flag miễn phí).
 - [ ] Act 3: 2 request song song → FLAG 3; tuần tự → fail.
+- [ ] Act 3: trang `/auction` KHÔNG có hàm `doRace()` (đã gỡ) — buộc người chơi tự script.
 - [ ] 3 flag không lộ chéo (dump DB Act 1 không thấy Flag 2/3).
 - [ ] Reset DB hoạt động (cho test lặp).
 - [ ] readOnly rootfs + tmpfs ok, chạy UID 1000.

@@ -7,5 +7,5 @@ services:
     read_only: true
     user: "1000"
     tmpfs:
-      - /tmp/db
+      - /tmp/db:uid=1000,gid=1000,mode=1777
     restart: unless-stopped

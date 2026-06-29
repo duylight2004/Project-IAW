@@ -37,7 +37,12 @@ pub async fn login(State(pool): State<SqlitePool>, Form(form): Form<LoginForm>) 
     };
 
     if ok {
-        Json(json!({ "status": "ok", "user": form.username })).into_response()
+        let cookie = format!("antiqua_session={}; Path=/; SameSite=Lax", form.username);
+        (
+            [(axum::http::header::SET_COOKIE, cookie)],
+            Json(json!({ "status": "ok", "user": form.username })),
+        )
+            .into_response()
     } else {
         (
             axum::http::StatusCode::UNAUTHORIZED,
@@ -45,4 +50,12 @@ pub async fn login(State(pool): State<SqlitePool>, Form(form): Form<LoginForm>) 
         )
             .into_response()
     }
+}
+
+pub fn is_logged_in(headers: &axum::http::HeaderMap) -> bool {
+    headers
+        .get(axum::http::header::COOKIE)
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.contains("antiqua_session="))
+        .unwrap_or(false)
 }

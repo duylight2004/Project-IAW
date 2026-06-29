@@ -9,7 +9,8 @@ tokio = { version = "1", features = ["full"] }
 sqlx = { version = "0.7", default-features = false, features = ["runtime-tokio", "sqlite", "macros"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-argon2 = "0.5"
+argon2 = { version = "0.5", features = ["rand"] }
+password-hash = { version = "0.5", features = ["getrandom"] }
 tower-http = { version = "0.5", features = ["fs"] }
 
 # ⚠️ Act 2 (integer overflow) phụ thuộc release build KHÔNG kiểm tra tràn số.

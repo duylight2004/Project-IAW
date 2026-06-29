@@ -2,17 +2,17 @@
 FROM rust:slim AS build
 WORKDIR /app
 
-# cache deps
-COPY Cargo.toml ./
+# cache deps (Cargo.lock để khóa phiên bản -> build tái lập được)
+COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo "fn main() {}" > src/main.rs \
-    && cargo build --release || true
+    && cargo build --release --locked || true
 RUN rm -rf src
 
 # nguồn thật
 COPY src ./src
 COPY templates ./templates
 # include_str! cần templates lúc compile; static được copy ở runtime stage
-RUN touch src/main.rs && cargo build --release
+RUN touch src/main.rs && cargo build --release --locked
 
 # ── runtime stage ──
 FROM debian:stable-slim

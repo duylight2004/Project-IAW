@@ -28,6 +28,8 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/login", get(login_page).post(routes::auth::login))
+        .route("/shop", get(shop_page))
+        .route("/auction", get(auction_page))
         .route("/search", get(routes::books::search))
         .route("/catalog", get(routes::books::catalog))
         .route("/buy", post(routes::books::buy))
@@ -52,6 +54,22 @@ async fn index() -> Html<&'static str> {
 // GET /login — form đăng nhập (rabbit hole). POST /login xử lý ở routes::auth.
 async fn login_page() -> Html<&'static str> {
     Html(include_str!("../templates/login.html"))
+}
+
+// GET /shop — trang mua sách (Act 2).
+async fn shop_page(headers: HeaderMap) -> impl IntoResponse {
+    if !routes::auth::is_logged_in(&headers) {
+        return axum::response::Redirect::to("/login").into_response();
+    }
+    Html(include_str!("../templates/shop.html")).into_response()
+}
+
+// GET /auction — trang đấu giá (Act 3).
+async fn auction_page(headers: HeaderMap) -> impl IntoResponse {
+    if !routes::auth::is_logged_in(&headers) {
+        return axum::response::Redirect::to("/login").into_response();
+    }
+    Html(include_str!("../templates/auction.html")).into_response()
 }
 
 // POST /admin/reset — reset Act 2/3, cần header `x-reset-token`.

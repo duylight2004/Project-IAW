@@ -8,7 +8,7 @@ use crate::models::{Book, User};
 use crate::pricing::total_price;
 
 // Flag 2 — KHÔNG nằm trong DB. Chỉ render trong handler khi mua thành công.
-const FLAG2: &str = "FLAG{r3l34s3_0v3rfl0w_fr33_r3str1ct3d_b00k}";
+const FLAG2: &str = "IAW{r3l34s3_0v3rfl0w_fr33_r3str1ct3d_b00k}";
 
 // ─────────────────────────── Act 1: /search ───────────────────────────
 
@@ -72,7 +72,29 @@ pub struct BuyForm {
     pub quantity: u32,
 }
 
-pub async fn buy(State(pool): State<SqlitePool>, Json(form): Json<BuyForm>) -> impl IntoResponse {
+pub async fn buy(
+    State(pool): State<SqlitePool>,
+    headers: axum::http::HeaderMap,
+    Json(form): Json<BuyForm>,
+) -> impl IntoResponse {
+    if !crate::routes::auth::is_logged_in(&headers) {
+        return (
+            axum::http::StatusCode::UNAUTHORIZED,
+            Json(json!({ "error": "unauthorized", "message": "Vui lòng đăng nhập để mua sách" })),
+        )
+            .into_response();
+    }
+
+    // Chặn quantity=0: nếu không, cost = price*0 = 0 <= coins -> mua miễn phí,
+    // bypass cả Act 2 (integer overflow). Phải mua ít nhất 1 cuốn.
+    if form.quantity == 0 {
+        return (
+            axum::http::StatusCode::BAD_REQUEST,
+            Json(json!({ "error": "invalid_quantity", "message": "Số lượng phải >= 1" })),
+        )
+            .into_response();
+    }
+
     // người mua mặc định = seeker
     let user: Option<User> = sqlx::query_as::<_, User>("SELECT * FROM users WHERE username = 'seeker'")
         .fetch_optional(&pool)

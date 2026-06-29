@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dau gia &mdash; Antiqua Library</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <h1>Antiqua Library</h1>
+      <p class="subtitle">Phien dau gia thu tich co</p>
+      <nav class="nav">
+        <a href="/">Trang chu</a>
+        <a href="/shop">Mua sach</a>
+        <a href="/auction">Dau gia</a>
+        <a href="/login">Dang nhap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Auction Settle -->
+    <div class="search-section">
+      <p class="label">He thong dau gia Antiqua</p>
+    </div>
+
+    <div class="auction-card">
+      <h2>Settle Bid &mdash; Ket thuc phien dau gia</h2>
+      <p class="desc">
+        Gui request <strong>POST /bids/settle</strong> de ket thuc phien dau gia.
+        Server xu ly: <strong>doc trang thai</strong> &rarr; <strong>cho 250ms</strong> &rarr; <strong>ghi ket qua</strong>.
+      </p>
+
+      <div class="settle-form">
+        <div class="field">
+          <label>Bid ID</label>
+          <input id="bidId" type="number" value="1" />
+        </div>
+        <div class="field">
+          <label>Nguoi dat (Who)</label>
+          <input id="who" type="text" value="seeker" />
+        </div>
+        <div class="btn-group">
+          <button class="settle-btn" onclick="doSettle()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><polyline points="20 6 9 17 4 12"/></svg>
+            Settle Bid
+          </button>
+        </div>
+      </div>
+
+      <div class="results-panel" style="margin-top:1.5rem">
+        <pre id="settleOut">// ket qua settle hien o day</pre>
+      </div>
+
+      <div style="margin-top:1rem">
+        <button class="reset-btn" onclick="doReset()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Reset DB (test lai)
+        </button>
+      </div>
+    </div>
+
+    <!-- How it works -->
+    <div class="auction-card" style="margin-top:1.5rem">
+      <h2>Race Condition &mdash; TOCTOU</h2>
+      <p class="desc">Server co window <strong>250ms</strong> giua READ va WRITE. Gui 2 request dong thoi se khai thac TOCTOU:</p>
+      <ul class="timeline">
+        <li><strong>T+0ms</strong> &mdash; Request A: SELECT status='open' &check;</li>
+        <li><strong>T+10ms</strong> &mdash; Request B: SELECT status='open' &check; (A chua UPDATE)</li>
+        <li><strong>T+250ms</strong> &mdash; Request A: UPDATE settled + INSERT settlement #1</li>
+        <li><strong>T+260ms</strong> &mdash; Request B: UPDATE settled + INSERT settlement #2 &rarr; <strong>FLAG!</strong></li>
+      </ul>
+      <div class="info-box">
+        <strong>Luu y:</strong> Bam <code>Settle Bid</code> tren giao dien chi gui 1 request tuan tu. De khai thac thanh cong TOCTOU và lay FLAG, ban can su dung tool hoac script (Python/Burp) de gui 2 request <strong>dong thoi</strong> trong window 250ms. Neu he thong da settle roi, bam <strong>Reset DB</strong> truoc khi thu lai.
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">Antiqua Library &copy; 2025</footer>
+
+  <script src="/static/js/modal.js"></script>
+  <script>
+    // Single settle
+    async function doSettle() {
+      const body = {
+        bid_id: parseInt(document.getElementById('bidId').value) || 1,
+        who: document.getElementById('who').value || 'seeker'
+      };
+      document.getElementById('settleOut').textContent = '// Dang gui request...';
+      const r = await fetch('/bids/settle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await r.json();
+      document.getElementById('settleOut').textContent = JSON.stringify(data, null, 2);
+      showModal(data, { title: 'Ket qua Settle Bid' });
+    }
+
+    // Reset DB
+    async function doReset() {
+      document.getElementById('settleOut').textContent = '// Dang reset...';
+      const r = await fetch('/admin/reset', {
+        method: 'POST',
+        headers: { 'x-reset-token': 'antiqua-reset-7f3a' }
+      });
+      const data = await r.json();
+      document.getElementById('settleOut').textContent = 'Reset: ' + JSON.stringify(data, null, 2);
+      showModal(data, { title: 'Reset Database' });
+    }
+  </script>
+</body>
+</html>

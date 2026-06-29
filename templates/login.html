@@ -3,31 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Đăng nhập — Antiqua</title>
-  <style>
-    body { font-family: Georgia, serif; background:#1c160f; color:#e8dcc0; }
-    main { max-width:360px; margin:4rem auto; }
-    label { display:block; margin:.8rem 0 .2rem; }
-    input { width:100%; padding:.6rem; background:#2a2114; color:#e8dcc0; border:1px solid #463a28; }
-    button { margin-top:1.2rem; padding:.6rem 1rem; background:#8a6d3b; color:#1c160f; border:0; cursor:pointer; }
-    pre { background:#120e08; padding:1rem; border:1px solid #463a28; }
-    a { color:#d4af6a; }
-  </style>
+  <title>Dang nhap &mdash; Antiqua Library</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
-  <main>
-    <h1>Đăng nhập</h1>
-    <!-- admin login only — public seekers use /catalog -->
-    <form id="f">
-      <label>Tên đăng nhập</label>
-      <input name="username" id="u" autocomplete="off" />
-      <label>Mật khẩu</label>
-      <input name="password" id="p" type="password" />
-      <button type="submit">Vào kho</button>
-    </form>
-    <pre id="out"></pre>
-    <p><a href="/">← Trang chủ</a></p>
-  </main>
+  <div class="login-container">
+    <div class="login-card">
+      <h1>Dang nhap</h1>
+      <p class="login-subtitle">Truy cap kho thu tich co Antiqua</p>
+      <!-- Thông báo nội bộ: Khách tra cứu công cộng sử dụng tài khoản seeker : seeker -->
+      <form id="f">
+        <div class="form-group">
+          <label for="u">Ten dang nhap</label>
+          <input name="username" id="u" autocomplete="off" placeholder="Ten dang nhap (mac dinh: seeker)" />
+        </div>
+        <div class="form-group">
+          <label for="p">Mat khau</label>
+          <input name="password" id="p" type="password" placeholder="Mat khau (mac dinh: seeker)" />
+        </div>
+        <button type="submit" class="login-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+          Vao kho
+        </button>
+      </form>
+      <div class="login-result" id="result-box" style="display:none">
+        <pre id="out"></pre>
+      </div>
+    </div>
+    <a href="/" class="back-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      Trang chu
+    </a>
+  </div>
+
   <script>
     document.getElementById('f').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -36,7 +44,19 @@
         password: document.getElementById('p').value,
       });
       const r = await fetch('/login', { method: 'POST', body });
-      document.getElementById('out').textContent = await r.text();
+      const resultBox = document.getElementById('result-box');
+      resultBox.style.display = 'block';
+      try {
+        const data = await r.json();
+        if (data.status === 'ok') {
+          document.getElementById('out').textContent = `Đăng nhập thành công với tài khoản: ${data.user}!\nĐang chuyển hướng sang kho sách...`;
+          setTimeout(() => { window.location.href = '/shop'; }, 1200);
+        } else {
+          document.getElementById('out').textContent = `Lỗi: ${data.message}`;
+        }
+      } catch (err) {
+        document.getElementById('out').textContent = 'Lỗi kết nối hoặc thông tin không hợp lệ.';
+      }
     });
   </script>
 </body>

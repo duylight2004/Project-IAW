@@ -5,7 +5,7 @@ use sqlx::SqlitePool;
 use std::str::FromStr;
 
 // Flag 1 — nằm trong DB (users.secret_note của admin), lấy qua SQLi UNION ở /search.
-const FLAG1: &str = "FLAG{l3gacy_s34rch_un10n_1nj3ct10n}";
+const FLAG1: &str = "IAW{l3gacy_s34rch_un10n_1nj3ct10n}";
 
 /// argon2id hash của một mật khẩu (salt ngẫu nhiên mỗi lần seed).
 fn hash_password(plain: &str) -> String {
@@ -20,7 +20,11 @@ fn hash_password(plain: &str) -> String {
 pub async fn init_pool(url: &str) -> SqlitePool {
     let opts = SqliteConnectOptions::from_str(url)
         .expect("sqlite url")
-        .create_if_missing(true);
+        .create_if_missing(true)
+        // Act 3 (TOCTOU): khi 2 request đua nhau ghi, writer thứ 2 có thể trúng
+        // SQLITE_BUSY. busy_timeout cho nó chờ writer đầu xong rồi ghi tiếp,
+        // đảm bảo INSERT settlement #2 thành công -> COUNT>1 -> flag ổn định.
+        .busy_timeout(std::time::Duration::from_secs(5));
     SqlitePoolOptions::new()
         .max_connections(5)
         .connect_with(opts)
@@ -74,6 +78,10 @@ pub async fn init_db(pool: &SqlitePool) {
         .unwrap_or(0);
     if n == 0 {
         seed(pool).await;
+    } else {
+        let _ = sqlx::query("UPDATE books SET title = 'Bản Thảo Ngụy Tạo' WHERE title LIKE '%IAW{f4k3_fl4g%'")
+            .execute(pool)
+            .await;
     }
 }
 
@@ -101,21 +109,33 @@ async fn seed(pool: &SqlitePool) {
         .await
         .expect("seed admin");
 
-    // người chơi mặc định
-    sqlx::query("INSERT INTO users (username, password, coins, secret_note) VALUES (?, ?, ?, NULL)")
+    // người chơi mặc định (fake flag cho seeker)
+    sqlx::query("INSERT INTO users (username, password, coins, secret_note) VALUES (?, ?, ?, ?)")
         .bind("seeker")
         .bind(hash_password("seeker"))
         .bind(1000_i64)
+        .bind("IAW{f4k3_fl4g_th1s_1s_just_4_s33k3r_n0t_4dm1n}")
         .execute(pool)
         .await
         .expect("seed seeker");
 
-    // sách thường (lấp danh mục + cho /search trả kết quả lành tính)
+    // người chơi phụ (fake flag cho librarian)
+    sqlx::query("INSERT INTO users (username, password, coins, secret_note) VALUES (?, ?, ?, ?)")
+        .bind("librarian")
+        .bind(hash_password("librarian_super_secret"))
+        .bind(500_i64)
+        .bind("IAW{f4k3_fl4g_l1br4r14n_s4ys_shhhh}")
+        .execute(pool)
+        .await
+        .expect("seed librarian");
+
+    // sách thường (lấp danh mục + fake flag book)
     let normal = [
         ("Bản Đồ Sao Cổ", "V. Andronikos", 40),
         ("Thảo Mộc Học Phương Đông", "L. Trần", 25),
         ("Hồi Ký Người Đóng Sách", "M. Đặng", 30),
         ("Niên Giám Hải Hành 1742", "P. Nguyễn", 55),
+        ("Bản Thảo Ngụy Tạo", "Kẻ Trộm Sách", 15),
     ];
     for (t, a, p) in normal {
         sqlx::query("INSERT INTO books (title, author, price, restricted) VALUES (?, ?, ?, 0)")
@@ -142,4 +162,12 @@ async fn seed(pool: &SqlitePool) {
         .execute(pool)
         .await
         .expect("seed bid");
+
+    // bid đóng sẵn — fake flag cho những ai dump bảng bids
+    sqlx::query("INSERT INTO bids (item, status, winner) VALUES (?, 'settled', ?)")
+        .bind("Chén Thánh Giả [replica]")
+        .bind("IAW{f4k3_fl4g_th1s_4uct10n_1s_4lr34dy_cl0s3d}")
+        .execute(pool)
+        .await
+        .expect("seed fake bid");
 }

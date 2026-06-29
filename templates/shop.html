@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kho sach &mdash; Antiqua Library</title>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-inner">
+      <h1>Antiqua Library</h1>
+      <p class="subtitle">Kho sach &amp; Mua thu tich</p>
+      <nav class="nav">
+        <a href="/">Trang chu</a>
+        <a href="/shop">Mua sach</a>
+        <a href="/auction">Dau gia</a>
+        <a href="/login">Dang nhap</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- Catalog -->
+    <div class="search-section">
+      <p class="label">Danh muc thu tich hien co</p>
+      <div id="catalog" class="catalog-grid">
+        <p style="color:var(--text-muted)">Dang tai danh muc...</p>
+      </div>
+    </div>
+
+    <!-- Buy Form -->
+    <div class="buy-section">
+      <h2>Mua sach</h2>
+      <p class="hint">Chon sach va nhap so luong de mua. Tai khoan mac dinh: seeker (1000 coins)</p>
+      <div class="buy-form">
+        <div class="field">
+          <label>Book ID (de trong = sach restricted)</label>
+          <input id="bookId" type="number" placeholder="vd: 5" />
+        </div>
+        <div class="field">
+          <label>Quantity (so luong)</label>
+          <input id="qty" type="number" value="1" />
+        </div>
+        <button class="buy-btn" onclick="doBuy()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Mua
+        </button>
+      </div>
+      <div class="wallet" id="wallet">Vi: <strong>1000 coins</strong></div>
+      <div class="results-panel" style="margin-top:1.2rem">
+        <pre id="buyOut">// ket qua mua sach hien o day</pre>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">Antiqua Library &copy; 2025</footer>
+
+  <script src="/static/js/modal.js"></script>
+  <script>
+    async function loadCatalog() {
+      const r = await fetch('/catalog');
+      const data = await r.json();
+      document.getElementById('catalog').innerHTML = data.books.map(b => `
+        <div class="book-card ${b.restricted ? 'restricted' : ''}">
+          ${b.restricted ? '<span class="badge">Restricted</span>' : ''}
+          <div class="book-title">${b.title}</div>
+          <div class="book-meta">${b.author} &mdash; <span class="book-price">${b.price} coins</span></div>
+        </div>
+      `).join('');
+    }
+    loadCatalog();
+
+    async function doBuy() {
+      const body = { quantity: parseInt(document.getElementById('qty').value) || 1 };
+      const bid = document.getElementById('bookId').value;
+      if (bid) body.book_id = parseInt(bid);
+      const r = await fetch('/buy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await r.json();
+      document.getElementById('buyOut').textContent = JSON.stringify(data, null, 2);
+      if (data.total_price !== undefined) {
+        const remaining = data.balance !== undefined ? data.balance : (1000 - data.total_price);
+        document.getElementById('wallet').innerHTML = `Vi: <strong>${remaining >= 0 ? remaining : '???'} coins</strong>`;
+      }
+      showModal(data, { title: 'Ket qua mua sach' });
+    }
+  </script>
+</body>
+</html>
