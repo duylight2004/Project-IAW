@@ -33,6 +33,7 @@ async fn main() {
         .route("/search", get(routes::books::search))
         .route("/catalog", get(routes::books::catalog))
         .route("/buy", post(routes::books::buy))
+        .route("/bids/ticket", post(routes::bids::ticket))
         .route("/bids/settle", post(routes::bids::settle))
         .route("/admin/reset", post(admin_reset))
         .nest_service("/static", ServeDir::new("static"))

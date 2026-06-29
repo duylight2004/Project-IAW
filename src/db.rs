@@ -7,6 +7,11 @@ use std::str::FromStr;
 // Flag 1 — nằm trong DB (users.secret_note của admin), lấy qua SQLi UNION ở /search.
 const FLAG1: &str = "IAW{l3gacy_s34rch_un10n_1nj3ct10n}";
 
+// Mã uỷ quyền (Act 1 -> Act 2): nhúng CHUNG với FLAG1 trong secret_note của admin.
+// Người chơi phải nhận ra note chứa CẢ flag LẪN mã này, rồi mang mã sang /buy.
+// AI thường chỉ chộp IAW{...} và bỏ qua phần `::reserve=...` -> kẹt ở Act 2.
+pub const RESERVE_CODE: &str = "AQ-9c4f17-RSV";
+
 /// argon2id hash của một mật khẩu (salt ngẫu nhiên mỗi lần seed).
 fn hash_password(plain: &str) -> String {
     let salt = SaltString::generate(&mut OsRng);
@@ -66,6 +71,12 @@ pub async fn init_db(pool: &SqlitePool) {
             bid_id INTEGER NOT NULL,
             who    TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS tickets (
+            id     INTEGER PRIMARY KEY,
+            token  TEXT NOT NULL UNIQUE,
+            bid_id INTEGER NOT NULL,
+            used   INTEGER NOT NULL DEFAULT 0
+        );
         "#,
     )
     .execute(pool)
@@ -90,6 +101,7 @@ pub async fn init_db(pool: &SqlitePool) {
 pub async fn reset_state(pool: &SqlitePool) {
     let _ = sqlx::query("DELETE FROM purchases").execute(pool).await;
     let _ = sqlx::query("DELETE FROM settlements").execute(pool).await;
+    let _ = sqlx::query("DELETE FROM tickets").execute(pool).await;
     let _ = sqlx::query("UPDATE users SET coins = 1000 WHERE username = 'seeker'")
         .execute(pool)
         .await;
@@ -99,12 +111,14 @@ pub async fn reset_state(pool: &SqlitePool) {
 }
 
 async fn seed(pool: &SqlitePool) {
-    // admin: secret_note giữ FLAG 1
+    // admin: secret_note giữ FLAG 1 + mã uỷ quyền cho Act 2 (chuỗi token ẩn).
+    // Định dạng cố ý "lẫn lộn" để người chơi phải đọc kỹ: lấy flag và CẢ reserve.
+    let admin_note = format!("{FLAG1} ::reserve={RESERVE_CODE}");
     sqlx::query("INSERT INTO users (username, password, coins, secret_note) VALUES (?, ?, ?, ?)")
         .bind("admin")
         .bind(hash_password("S0_l0ng_4nd_th4nks_f0r_4ll"))
         .bind(99999_i64)
-        .bind(FLAG1)
+        .bind(&admin_note)
         .execute(pool)
         .await
         .expect("seed admin");

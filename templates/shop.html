@@ -35,12 +35,16 @@
       <p class="hint">Chon sach va nhap so luong de mua. Tai khoan mac dinh: seeker (1000 coins)</p>
       <div class="buy-form">
         <div class="field">
-          <label>Book ID (de trong = sach restricted)</label>
+          <label>Book ID</label>
           <input id="bookId" type="number" placeholder="vd: 5" />
         </div>
         <div class="field">
           <label>Quantity (so luong)</label>
           <input id="qty" type="number" value="1" />
+        </div>
+        <div class="field">
+          <label>Ma uy quyen</label>
+          <input id="reserve" type="text" placeholder="(neu co)" autocomplete="off" />
         </div>
         <button class="buy-btn" onclick="doBuy()">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -75,6 +79,8 @@
       const body = { quantity: parseInt(document.getElementById('qty').value) || 1 };
       const bid = document.getElementById('bookId').value;
       if (bid) body.book_id = parseInt(bid);
+      const reserve = document.getElementById('reserve').value;
+      if (reserve) body.reserve = reserve;
       const r = await fetch('/buy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

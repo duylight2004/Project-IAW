@@ -1,24 +1,91 @@
-// src/routes/bids.rs — Act 3 (TOCTOU double-settle)
+// src/routes/bids.rs — Act 3 (TOCTOU double-settle) + nonce dùng-một-lần
 //
 // settle: READ trạng thái -> WINDOW (sleep mô phỏng xử lý chậm) -> WRITE.
 // Không atomic, không BEGIN IMMEDIATE, không lock. Hai request song song
 // cùng đọc status='open' trong window -> cùng ghi settlement -> COUNT > 1.
+//
+// CHỐNG REPLAY: mỗi settle cần một `ticket` ngẫu nhiên dùng-một-lần (lấy qua
+// POST /bids/ticket, cần BIDDER_PASS từ Act 2). Tiêu thụ ticket nguyên tử bằng
+// UPDATE ... WHERE used=0 -> bắn lại cùng một request không ăn lần hai. Muốn
+// double-settle phải xin 2 ticket khác nhau rồi đua trong window.
 use axum::{extract::State, response::IntoResponse, Json};
 use serde::Deserialize;
 use serde_json::json;
 use sqlx::SqlitePool;
 use std::time::Duration;
 
+use argon2::password_hash::{rand_core::OsRng, SaltString};
+
 use crate::models::Bid;
+use crate::routes::books::BIDDER_PASS;
 
 // Flag 3 — KHÔNG nằm trong DB; server trả khi phát hiện double-settle.
 const FLAG3: &str = "IAW{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}";
 const WINDOW_MS: u64 = 250;
 
+// ─────────────────────────── POST /bids/ticket ───────────────────────────
+
+#[derive(Deserialize)]
+pub struct TicketReq {
+    pub bidder_pass: String,
+    /// phiên muốn settle (mặc định bid 1 nếu không truyền)
+    pub bid_id: Option<i64>,
+}
+
+/// Cấp một nonce dùng-một-lần cho settle. Cần BIDDER_PASS (token ẩn từ Act 2).
+/// Token sinh ngẫu nhiên (OsRng) -> không đoán/precompute được, buộc fetch động.
+pub async fn ticket(
+    State(pool): State<SqlitePool>,
+    headers: axum::http::HeaderMap,
+    Json(req): Json<TicketReq>,
+) -> impl IntoResponse {
+    if !crate::routes::auth::is_logged_in(&headers) {
+        return (
+            axum::http::StatusCode::UNAUTHORIZED,
+            Json(json!({ "error": "unauthorized", "message": "Vui lòng đăng nhập" })),
+        )
+            .into_response();
+    }
+
+    // CHUỖI Act 2 -> Act 3: chỉ "verified bidder" (có BIDDER_PASS) mới xin được ticket.
+    if req.bidder_pass != BIDDER_PASS {
+        return (
+            axum::http::StatusCode::FORBIDDEN,
+            Json(json!({ "error": "not_verified_bidder" })),
+        )
+            .into_response();
+    }
+
+    let bid_id = req.bid_id.unwrap_or(1);
+    let token = SaltString::generate(&mut OsRng).as_str().to_owned();
+
+    let inserted = sqlx::query("INSERT INTO tickets (token, bid_id, used) VALUES (?, ?, 0)")
+        .bind(&token)
+        .bind(bid_id)
+        .execute(&pool)
+        .await;
+
+    if inserted.is_err() {
+        return (
+            axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({ "error": "ticket_issue_failed" })),
+        )
+            .into_response();
+    }
+
+    Json(json!({ "ticket": token, "bid_id": bid_id })).into_response()
+}
+
+// ─────────────────────────── POST /bids/settle ───────────────────────────
+
 #[derive(Deserialize)]
 pub struct SettleReq {
     pub bid_id: i64,
     pub who: String,
+    /// nonce dùng-một-lần lấy từ /bids/ticket
+    pub ticket: String,
+    /// token ẩn từ Act 2
+    pub bidder_pass: String,
 }
 
 pub async fn settle(
@@ -30,6 +97,30 @@ pub async fn settle(
         return (
             axum::http::StatusCode::UNAUTHORIZED,
             Json(json!({ "error": "unauthorized", "message": "Vui lòng đăng nhập để tham gia đấu giá" })),
+        )
+            .into_response();
+    }
+
+    // CHUỖI Act 2 -> Act 3: cần BIDDER_PASS.
+    if req.bidder_pass != BIDDER_PASS {
+        return (
+            axum::http::StatusCode::FORBIDDEN,
+            Json(json!({ "error": "not_verified_bidder" })),
+        )
+            .into_response();
+    }
+
+    // CHỐNG REPLAY: tiêu thụ ticket nguyên tử. rows_affected==0 nghĩa là ticket
+    // không tồn tại hoặc đã dùng -> chặn bắn lại cùng một request.
+    let consumed = sqlx::query("UPDATE tickets SET used = 1 WHERE token = ? AND used = 0")
+        .bind(&req.ticket)
+        .execute(&pool)
+        .await;
+    let ok_ticket = consumed.map(|r| r.rows_affected() == 1).unwrap_or(false);
+    if !ok_ticket {
+        return (
+            axum::http::StatusCode::CONFLICT,
+            Json(json!({ "error": "ticket_invalid", "message": "Vé không hợp lệ hoặc đã dùng" })),
         )
             .into_response();
     }

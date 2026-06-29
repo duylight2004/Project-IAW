@@ -29,8 +29,8 @@
     <div class="auction-card">
       <h2>Settle Bid &mdash; Ket thuc phien dau gia</h2>
       <p class="desc">
-        Gui request <strong>POST /bids/settle</strong> de ket thuc phien dau gia.
-        Server xu ly: <strong>doc trang thai</strong> &rarr; <strong>cho 250ms</strong> &rarr; <strong>ghi ket qua</strong>.
+        Ket thuc mot phien dau gia dang mo. Moi lan settle can mot <strong>ve</strong> hop le
+        va <strong>ma du gia</strong> (bidder pass).
       </p>
 
       <div class="settle-form">
@@ -41,6 +41,10 @@
         <div class="field">
           <label>Nguoi dat (Who)</label>
           <input id="who" type="text" value="seeker" />
+        </div>
+        <div class="field">
+          <label>Ma du gia (bidder pass)</label>
+          <input id="bidderPass" type="text" placeholder="(can de tham gia)" autocomplete="off" />
         </div>
         <div class="btn-group">
           <button class="settle-btn" onclick="doSettle()">
@@ -61,41 +65,44 @@
         </button>
       </div>
     </div>
-
-    <!-- How it works -->
-    <div class="auction-card" style="margin-top:1.5rem">
-      <h2>Race Condition &mdash; TOCTOU</h2>
-      <p class="desc">Server co window <strong>250ms</strong> giua READ va WRITE. Gui 2 request dong thoi se khai thac TOCTOU:</p>
-      <ul class="timeline">
-        <li><strong>T+0ms</strong> &mdash; Request A: SELECT status='open' &check;</li>
-        <li><strong>T+10ms</strong> &mdash; Request B: SELECT status='open' &check; (A chua UPDATE)</li>
-        <li><strong>T+250ms</strong> &mdash; Request A: UPDATE settled + INSERT settlement #1</li>
-        <li><strong>T+260ms</strong> &mdash; Request B: UPDATE settled + INSERT settlement #2 &rarr; <strong>FLAG!</strong></li>
-      </ul>
-      <div class="info-box">
-        <strong>Luu y:</strong> Bam <code>Settle Bid</code> tren giao dien chi gui 1 request tuan tu. De khai thac thanh cong TOCTOU và lay FLAG, ban can su dung tool hoac script (Python/Burp) de gui 2 request <strong>dong thoi</strong> trong window 250ms. Neu he thong da settle roi, bam <strong>Reset DB</strong> truoc khi thu lai.
-      </div>
-    </div>
   </main>
 
   <footer class="footer">Antiqua Library &copy; 2025</footer>
 
   <script src="/static/js/modal.js"></script>
   <script>
-    // Single settle
+    // Single settle: xin mot ve roi settle mot lan.
     async function doSettle() {
-      const body = {
-        bid_id: parseInt(document.getElementById('bidId').value) || 1,
-        who: document.getElementById('who').value || 'seeker'
-      };
-      document.getElementById('settleOut').textContent = '// Dang gui request...';
+      const bidId = parseInt(document.getElementById('bidId').value) || 1;
+      const bidderPass = document.getElementById('bidderPass').value;
+      const out = document.getElementById('settleOut');
+
+      out.textContent = '// Dang xin ve...';
+      const tr = await fetch('/bids/ticket', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bid_id: bidId, bidder_pass: bidderPass })
+      });
+      const tdata = await tr.json();
+      if (!tdata.ticket) {
+        out.textContent = JSON.stringify(tdata, null, 2);
+        showModal(tdata, { title: 'Ket qua Settle Bid' });
+        return;
+      }
+
+      out.textContent = '// Dang gui request...';
       const r = await fetch('/bids/settle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify({
+          bid_id: bidId,
+          who: document.getElementById('who').value || 'seeker',
+          ticket: tdata.ticket,
+          bidder_pass: bidderPass
+        })
       });
       const data = await r.json();
-      document.getElementById('settleOut').textContent = JSON.stringify(data, null, 2);
+      out.textContent = JSON.stringify(data, null, 2);
       showModal(data, { title: 'Ket qua Settle Bid' });
     }
 

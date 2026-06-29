@@ -10,6 +10,11 @@ use crate::pricing::total_price;
 // Flag 2 — KHÔNG nằm trong DB. Chỉ render trong handler khi mua thành công.
 const FLAG2: &str = "IAW{r3l34s3_0v3rfl0w_fr33_r3str1ct3d_b00k}";
 
+// Token ẩn (Act 2 -> Act 3): chỉ lộ ra khi mua restricted thành công, KHÔNG nằm
+// trong DB -> SQLi của Act 1 không lấy được (giữ cách ly flag). Người chơi phải
+// mang BIDDER_PASS sang Act 3 mới được phép settle.
+pub const BIDDER_PASS: &str = "BP-3f8a21-PASS";
+
 // ─────────────────────────── Act 1: /search ───────────────────────────
 
 #[derive(Deserialize)]
@@ -70,6 +75,9 @@ pub struct BuyForm {
     pub book_id: Option<i64>,
     /// input runtime -> không const-fold; phép nhân tràn ở release build
     pub quantity: u32,
+    /// mã uỷ quyền lấy từ Act 1 (leak qua SQLi). Optional ở serde -> request cũ
+    /// vẫn parse, chỉ chặn ở bước kiểm dưới khi mua sách restricted.
+    pub reserve: Option<String>,
 }
 
 pub async fn buy(
@@ -128,6 +136,20 @@ pub async fn buy(
             .into_response();
     };
 
+    // CHUỖI Act 1 -> Act 2: sách restricted cần mã uỷ quyền (RESERVE_CODE) leak từ
+    // secret_note của admin qua SQLi. Thông báo lỗi cố ý trung tính (không spell vuln)
+    // -> người chơi tự suy ra cần "mã" đã thấy ở Act 1.
+    if book.restricted == 1 && form.reserve.as_deref() != Some(crate::db::RESERVE_CODE) {
+        return (
+            axum::http::StatusCode::FORBIDDEN,
+            Json(json!({
+                "error": "reserve_required",
+                "message": "Mục hạn chế cần mã uỷ quyền hợp lệ",
+            })),
+        )
+            .into_response();
+    }
+
     // LỖ HỔNG: total_price không kiểm tràn; quantity lớn -> wraps quanh 2^32.
     let cost = total_price(book.price as u32, form.quantity);
 
@@ -146,23 +168,26 @@ pub async fn buy(
             .await
             .ok();
 
-        let body = if book.restricted == 1 {
-            // nội dung thật của sách restricted — chứa FLAG 2
-            format!(
-                "Bạn đã sở hữu '{}'. Nội dung khoá đã mở: {}",
-                book.title, FLAG2
-            )
+        if book.restricted == 1 {
+            // nội dung thật của sách restricted — chứa FLAG 2 và BIDDER_PASS (token
+            // ẩn mang sang Act 3). Cả hai chỉ lộ ở đây, không nằm trong DB.
+            Json(json!({
+                "status": "purchased",
+                "total_price": cost,
+                "quantity": form.quantity,
+                "body": format!("Bạn đã sở hữu '{}'. Nội dung khoá đã mở: {}", book.title, FLAG2),
+                "bidder_pass": BIDDER_PASS,
+            }))
+            .into_response()
         } else {
-            format!("Bạn đã mua '{}'.", book.title)
-        };
-
-        Json(json!({
-            "status": "purchased",
-            "total_price": cost,
-            "quantity": form.quantity,
-            "body": body,
-        }))
-        .into_response()
+            Json(json!({
+                "status": "purchased",
+                "total_price": cost,
+                "quantity": form.quantity,
+                "body": format!("Bạn đã mua '{}'.", book.title),
+            }))
+            .into_response()
+        }
     } else {
         // mua hụt: lộ giá đã tính để người chơi quan sát overflow
         Json(json!({
