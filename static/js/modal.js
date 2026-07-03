@@ -60,16 +60,16 @@ function showModal(data, opts = {}) {
     title = opts.title || 'Error';
   } else if (data.status === 'purchased') {
     type = 'success';
-    title = '✅ Purchase successful!';
+    title = '✅ Mua thanh cong!';
   } else if (data.status === 'settled') {
     type = 'success';
-    title = '✅ Settle successful';
+    title = '✅ Settle thanh cong';
   } else if (data.status === 'double_settle_detected') {
     type = 'flag';
     title = '🏴 FLAG Found!';
   } else if (data.status === 'reset_ok') {
     type = 'success';
-    title = '🔄 Reset successful';
+    title = '🔄 Reset thanh cong';
   }
 
   // Set title class

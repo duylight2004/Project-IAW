@@ -1,58 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Antiqua Library</title>
-  <meta name="description" content="Archive of ancient volumes - search, auctions and rare book collecting" />
+  <title>Antiqua Library - Kho Thư Tịch Cổ</title>
+  <meta name="description" content="Kho luu tru thu tich co - tra cuu, dau gia va suu tam sach hiem" />
   <link rel="stylesheet" href="/static/css/style.css" />
+  <!-- Thư viện hiệu ứng chuyển động -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
 <body>
+  <!-- Background Banner Hero hoành tráng -->
+  <div class="hero-banner animate__animated animate__fadeIn">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="hero-logo animate__animated animate__zoomIn">
+        <i data-lucide="library" class="library-logo"></i>
+      </div>
+      <h1 class="animate__animated animate__fadeInDown">ANTIQUA LIBRARY</h1>
+      <p class="subtitle animate__animated animate__fadeInUp">Kho thư tịch hiếm &mdash; tra cứu, đấu giá, sưu tầm.</p>
+    </div>
+  </div>
+
   <header class="header">
     <div class="header-inner">
-      <h1>Antiqua Library</h1>
-      <p class="subtitle">Archive of rare volumes &mdash; search, auction, collect.</p>
       <nav class="nav">
-        <a href="/login">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Login
+        <a href="/">
+          <i data-lucide="home"></i> Trang chủ
         </a>
         <a href="/shop">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          Shop
+          <i data-lucide="book-open"></i> Kho sách
         </a>
         <a href="/auction">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          Auctions
+          <i data-lucide="gavel"></i> Đấu giá
+        </a>
+        <a href="/login">
+          <i data-lucide="log-in"></i> Đăng nhập
         </a>
       </nav>
     </div>
   </header>
 
   <main class="main">
-    <div class="search-section">
-      <p class="label">Enter a volume title to search the archive</p>
-      <div class="search-box">
-        <input id="q" placeholder="e.g. Star Map" autocomplete="off" />
+    <div class="search-section animate__animated animate__fadeInUp">
+      <p class="label"><i data-lucide="scroll" class="section-icon"></i> Nhập tên thư tịch để tra cứu trong kho lưu trữ</p>
+      
+      <div class="search-box" data-tilt data-tilt-max="3" data-tilt-scale="1.01">
+        <input id="q" placeholder="Ví dụ: Ban Do Sao" autocomplete="off" />
         <button onclick="doSearch()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          Search
+          <i data-lucide="search"></i>
+          Tra cứu
         </button>
       </div>
 
-      <div class="ornament">&loz; &bull; &loz;</div>
+      <div class="ornament animate__animated animate__fadeIn animate__delay-1s">&loz; &bull; &loz;</div>
 
-      <div class="results-panel">
-        <pre id="out">// search results appear here</pre>
+      <div class="results-panel animate__animated animate__fadeInUp animate__delay-1s">
+        <div class="results-header">
+          <i data-lucide="terminal" class="terminal-icon"></i>
+          <span>BẢNG KẾT QUẢ TRUY VẤN</span>
+        </div>
+        <pre id="out">// Kết quả tra cứu sẽ hiển thị ở đây...</pre>
       </div>
     </div>
   </main>
 
   <footer class="footer">
-    Antiqua Library &copy; 2025 &mdash; Archive of ancient volumes
+    <div class="footer-content">
+      <p>Antiqua Library &copy; 2025 &mdash; Dự án CTF Giáo Dục IAW</p>
+      <div class="footer-ornament">&bull; &bull; &bull;</div>
+    </div>
   </footer>
 
+  <!-- Thư viện bổ trợ CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <script src="/static/js/modal.js"></script>
   <script src="/static/js/app.js"></script>
+  <script>
+    // Khởi tạo Lucide Icons
+    lucide.createIcons();
+  </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
-// Volume search — the home page shows ONLY a status message, it does NOT list the
-// records and does NOT open a modal. To read the leaked data (Act 1 SQLi) a player
-// must inspect the raw response via DevTools -> Network or curl/Postman. The backend
-// keeps the intentional vulnerability: both the results and the SQL error message are
-// still fully present in the HTTP response.
+// Tra cứu thư tịch — trang chủ CHỈ hiển thị một dòng trạng thái chung, không
+// liệt kê bản ghi và không mở modal. Muốn đọc dữ liệu rò rỉ (Act 1 SQLi),
+// người chơi phải tự soi response gốc qua DevTools -> Network hoặc curl/Postman.
+// Backend vẫn giữ nguyên lỗ hổng: cả kết quả lẫn thông báo lỗi SQL vẫn nằm đầy
+// đủ trong HTTP response, chỉ là giao diện không phơi ra.
 async function doSearch() {
   const query = document.getElementById('q').value;
   const out = document.getElementById('out');
@@ -12,16 +12,17 @@ async function doSearch() {
   out.textContent = buildMessage(data);
 }
 
-// Return a plain status message — it never reveals record contents or error details.
+// Trả về một dòng trạng thái đơn giản — không bao giờ lộ nội dung bản ghi
+// hay chi tiết lỗi SQL.
 function buildMessage(data) {
   if (data && data.error) {
-    // The SQL error detail is still in the response (Network tab) for column enumeration.
-    return '⚠ The archive ran into a problem while processing the search query.';
+    // Chi tiết lỗi SQL vẫn nằm trong response (tab Network) để enumerate cột.
+    return '⚠ Kho lưu trữ gặp sự cố khi xử lý truy vấn tìm kiếm.';
   }
 
   const results = (data && data.results) || [];
   if (results.length === 0) {
-    return 'No volumes matched your keyword.';
+    return 'Không tìm thấy thư tịch nào khớp với từ khoá.';
   }
-  return `Found ${results.length} volume(s) in the archive.`;
+  return `Tìm thấy ${results.length} thư tịch trong kho lưu trữ.`;
 }

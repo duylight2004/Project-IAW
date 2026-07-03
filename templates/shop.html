@@ -1,77 +1,115 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Shop &mdash; Antiqua Library</title>
+  <title>Kho sách &mdash; Antiqua Library</title>
   <link rel="stylesheet" href="/static/css/style.css" />
+  <!-- Thư viện hiệu ứng chuyển động -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
 <body>
   <header class="header">
     <div class="header-inner">
-      <h1>Antiqua Library</h1>
-      <p class="subtitle">Shop &amp; buy volumes</p>
+      <h1>ANTIQUA LIBRARY</h1>
+      <p class="subtitle">Kho sách &amp; Mua thư tịch</p>
       <nav class="nav">
-        <a href="/">Home</a>
-        <a href="/shop">Shop</a>
-        <a href="/auction">Auctions</a>
-        <a href="/logout">Logout</a>
+        <a href="/"><i data-lucide="home"></i> Trang chủ</a>
+        <a href="/shop"><i data-lucide="book-open"></i> Mua sách</a>
+        <a href="/auction"><i data-lucide="gavel"></i> Đấu giá</a>
+        <a href="/logout"><i data-lucide="log-out"></i> Đăng xuất</a>
       </nav>
     </div>
   </header>
 
   <main class="main">
     <!-- Catalog -->
-    <div class="search-section">
-      <p class="label">Available volumes</p>
+    <div class="search-section animate__animated animate__fadeInUp">
+      <p class="label"><i data-lucide="bookmark" class="section-icon"></i> Danh mục thư tịch hiện có</p>
       <div id="catalog" class="catalog-grid">
-        <p style="color:var(--text-muted)">Loading catalog...</p>
+        <p style="color:var(--text-muted)">Đang tải danh mục...</p>
       </div>
     </div>
 
-    <!-- Buy Form -->
-    <div class="buy-section">
-      <h2>Buy a book</h2>
-      <p class="hint">Pick a book and enter a quantity to buy. Default account: seeker (1000 coins)</p>
-      <div class="buy-form">
-        <div class="field">
-          <label>Book ID</label>
-          <input id="bookId" type="number" placeholder="vd: 5" />
+    <!-- Buy Form & Wallet Section -->
+    <div class="buy-section animate__animated animate__fadeInUp animate__delay-1s">
+      <h2>MUA THƯ TỊCH</h2>
+      <p class="hint">Chọn sách và nhập số lượng để mua. Tài khoản mặc định: seeker (1000 coins)</p>
+      
+      <div class="buy-container-inner">
+        <div class="buy-form">
+          <div class="field">
+            <label><i data-lucide="key" class="field-icon"></i> Book ID</label>
+            <input id="bookId" type="number" placeholder="Ví dụ: 5" required />
+          </div>
+          <div class="field">
+            <label><i data-lucide="hash" class="field-icon"></i> Số lượng (qty)</label>
+            <input id="qty" type="number" value="1" min="1" required />
+          </div>
+          <div class="field">
+            <label><i data-lucide="file-key" class="field-icon"></i> Mã ủy quyền (reserve)</label>
+            <input id="reserve" type="text" placeholder="(nếu có)" autocomplete="off" />
+          </div>
+          <button class="buy-btn" onclick="doBuy()">
+            <i data-lucide="shopping-cart"></i>
+            Mua ngay
+          </button>
         </div>
-        <div class="field">
-          <label>Quantity</label>
-          <input id="qty" type="number" value="1" />
+
+        <div class="wallet-wrapper">
+          <div class="wallet" id="wallet">
+            <i data-lucide="coins" class="wallet-icon"></i>
+            <span>Ví Coins: <strong>1000</strong></span>
+          </div>
         </div>
-        <div class="field">
-          <label>Authorization code</label>
-          <input id="reserve" type="text" placeholder="(if any)" autocomplete="off" />
-        </div>
-        <button class="buy-btn" onclick="doBuy()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          Buy
-        </button>
       </div>
-      <div class="wallet" id="wallet">Wallet: <strong>1000 coins</strong></div>
-      <div class="results-panel" style="margin-top:1.2rem">
-        <pre id="buyOut">// purchase result appears here</pre>
+
+      <div class="results-panel" style="margin-top:2rem">
+        <div class="results-header">
+          <i data-lucide="receipt" class="terminal-icon"></i>
+          <span>CHI TIẾT HÓA ĐƠN MUA HÀNG</span>
+        </div>
+        <pre id="buyOut">// Kết quả giao dịch sẽ hiển thị ở đây...</pre>
       </div>
     </div>
   </main>
 
-  <footer class="footer">Antiqua Library &copy; 2025</footer>
+  <footer class="footer">
+    <div class="footer-content">
+      <p>Antiqua Library &copy; 2025</p>
+    </div>
+  </footer>
 
+  <!-- Thư viện bổ trợ CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <script src="/static/js/modal.js"></script>
   <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
     async function loadCatalog() {
       const r = await fetch('/catalog');
       const data = await r.json();
       document.getElementById('catalog').innerHTML = data.books.map(b => `
-        <div class="book-card ${b.restricted ? 'restricted' : ''}">
-          ${b.restricted ? '<span class="badge">Restricted</span>' : ''}
+        <div class="book-card ${b.restricted ? 'restricted' : ''}" data-tilt data-tilt-max="8" data-tilt-glare data-tilt-max-glare="0.15">
+          ${b.restricted ? '<span class="badge"><i data-lucide="alert-triangle" class="badge-icon"></i> CẤM</span>' : ''}
           <div class="book-title">${b.title}</div>
-          <div class="book-meta">${b.author} &mdash; <span class="book-price">${b.price} coins</span></div>
+          <div class="book-meta">
+            <span class="book-author"><i data-lucide="feather" class="inline-icon"></i> ${b.author}</span>
+            <span class="book-price">${b.price} coins</span>
+          </div>
         </div>
       `).join('');
+      
+      // Re-initialize Lucide Icons and Vanilla-Tilt for newly generated elements
+      lucide.createIcons();
+      VanillaTilt.init(document.querySelectorAll(".book-card"), {
+        max: 8,
+        speed: 400,
+        glare: true,
+        "max-glare": 0.15,
+      });
     }
     loadCatalog();
 
@@ -81,18 +119,27 @@
       if (bid) body.book_id = parseInt(bid);
       const reserve = document.getElementById('reserve').value;
       if (reserve) body.reserve = reserve;
+      
+      const buyOutElement = document.getElementById('buyOut');
+      buyOutElement.textContent = '// Đang thực hiện giao dịch...';
+      
       const r = await fetch('/buy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
       const data = await r.json();
-      document.getElementById('buyOut').textContent = JSON.stringify(data, null, 2);
+      buyOutElement.textContent = JSON.stringify(data, null, 2);
+      
       if (data.total_price !== undefined) {
         const remaining = data.balance !== undefined ? data.balance : (1000 - data.total_price);
-        document.getElementById('wallet').innerHTML = `Wallet: <strong>${remaining >= 0 ? remaining : '???'} coins</strong>`;
+        document.getElementById('wallet').innerHTML = `
+          <i data-lucide="coins" class="wallet-icon"></i>
+          <span>Ví Coins: <strong>${remaining >= 0 ? remaining : '???'}</strong></span>
+        `;
+        lucide.createIcons();
       }
-      showModal(data, { title: 'Purchase result' });
+      showModal(data, { title: 'Kết quả mua sách' });
     }
   </script>
 </body>
