@@ -90,7 +90,7 @@ pub async fn init_db(pool: &SqlitePool) {
     if n == 0 {
         seed(pool).await;
     } else {
-        let _ = sqlx::query("UPDATE books SET title = 'Bản Thảo Ngụy Tạo' WHERE title LIKE '%IAW{f4k3_fl4g%'")
+        let _ = sqlx::query("UPDATE books SET title = 'The Forged Manuscript' WHERE title LIKE '%IAW{f4k3_fl4g%'")
             .execute(pool)
             .await;
     }
@@ -145,11 +145,11 @@ async fn seed(pool: &SqlitePool) {
 
     // sách thường (lấp danh mục + fake flag book)
     let normal = [
-        ("Bản Đồ Sao Cổ", "V. Andronikos", 40),
-        ("Thảo Mộc Học Phương Đông", "L. Trần", 25),
-        ("Hồi Ký Người Đóng Sách", "M. Đặng", 30),
-        ("Niên Giám Hải Hành 1742", "P. Nguyễn", 55),
-        ("Bản Thảo Ngụy Tạo", "Kẻ Trộm Sách", 15),
+        ("Ancient Star Map", "V. Andronikos", 40),
+        ("Eastern Herbology", "L. Tran", 25),
+        ("Memoirs of a Bookbinder", "M. Dang", 30),
+        ("Maritime Almanac 1742", "P. Nguyen", 55),
+        ("The Forged Manuscript", "The Book Thief", 15),
     ];
     for (t, a, p) in normal {
         sqlx::query("INSERT INTO books (title, author, price, restricted) VALUES (?, ?, ?, 0)")
@@ -163,8 +163,8 @@ async fn seed(pool: &SqlitePool) {
 
     // sách restricted — Act 2 (price = 9999 lẻ -> mọi remainder reachable)
     sqlx::query("INSERT INTO books (title, author, price, restricted) VALUES (?, ?, ?, 1)")
-        .bind("Mật Lục Antiqua [locked]")
-        .bind("Khuyết Danh")
+        .bind("Antiqua Secret Codex [locked]")
+        .bind("Anonymous")
         .bind(9999_i64)
         .execute(pool)
         .await
@@ -172,14 +172,14 @@ async fn seed(pool: &SqlitePool) {
 
     // bid mở sẵn — Act 3
     sqlx::query("INSERT INTO bids (item, status, winner) VALUES (?, 'open', NULL)")
-        .bind("Bản thảo gốc Antiqua")
+        .bind("Original Antiqua Manuscript")
         .execute(pool)
         .await
         .expect("seed bid");
 
     // bid đóng sẵn — fake flag cho những ai dump bảng bids
     sqlx::query("INSERT INTO bids (item, status, winner) VALUES (?, 'settled', ?)")
-        .bind("Chén Thánh Giả [replica]")
+        .bind("False Holy Grail [replica]")
         .bind("IAW{f4k3_fl4g_th1s_4uct10n_1s_4lr34dy_cl0s3d}")
         .execute(pool)
         .await

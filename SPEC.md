@@ -19,7 +19,7 @@
 
 ### Vị trí 3 Flag (Không trùng nhau, không lộ chéo)
 - **Flag 1** — Nằm tại `users.secret_note` của user `admin` (chỉ trích xuất được qua SQLi tại `GET /search`).
-- **Flag 2** — Server **chỉ trả về** trong handler `POST /buy` (dựng trực tiếp trong code) sau khi mua thành công sách restricted. Không lưu trong DB. (Trong DB chỉ có sách restricted với `title = 'Mật Lục Antiqua [locked]'`, không có cột nội dung/flag.)
+- **Flag 2** — Server **chỉ trả về** trong handler `POST /buy` (dựng trực tiếp trong code) sau khi mua thành công sách restricted. Không lưu trong DB. (Trong DB chỉ có sách restricted với `title = 'Antiqua Secret Codex [locked]'`, không có cột nội dung/flag.)
 - **Flag 3** — Chuỗi server trả về khi phát hiện một phiên đấu giá có >1 người thắng (double-settle). Không lưu trong DB.
 
 ---
@@ -95,7 +95,7 @@ CREATE TABLE tickets (                 -- Act 3: nonce dùng-một-lần cho set
 - `admin` với `secret_note = 'IAW{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV'` (Flag 1 thật + `RESERVE_CODE` cho Act 2).
 - `seeker` / `seeker`, `coins = 1000`, `secret_note = 'IAW{f4k3_fl4g_th1s_1s_just_4_s33k3r_n0t_4dm1n}'` (Mồi nhử).
 - `librarian`, `secret_note = 'IAW{f4k3_fl4g_l1br4r14n_s4ys_shhhh}'` (Mồi nhử).
-- 5 sách thường (chứa 1 cuốn "Bản Thảo Ngụy Tạo" làm mồi) + 1 sách restricted `price = 9999, restricted = 1`.
+- 5 sách thường (chứa 1 cuốn "The Forged Manuscript" làm mồi) + 1 sách restricted `price = 9999, restricted = 1`.
 - 1 bid `status='open'` (mục tiêu Act 3) + 1 bid `status='settled'` với `winner = 'IAW{f4k3_fl4g_th1s_4uct10n_1s_4lr34dy_cl0s3d}'` (Mồi nhử cho ai dump bảng `bids`).
 
 > **Mồi nhử (traps):** Nhiều chuỗi `IAW{f4k3_fl4g...}` nằm rải rác trong DB. Script exploit hoặc người chơi bắt buộc phải nhắm đúng vào `secret_note` của `admin` (`WHERE username='admin'`). Không có endpoint giải mã — flag thật được trích xuất trực tiếp.

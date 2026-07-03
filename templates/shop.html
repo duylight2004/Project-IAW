@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Kho sach &mdash; Antiqua Library</title>
+  <title>Shop &mdash; Antiqua Library</title>
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
   <header class="header">
     <div class="header-inner">
       <h1>Antiqua Library</h1>
-      <p class="subtitle">Kho sach &amp; Mua thu tich</p>
+      <p class="subtitle">Shop &amp; buy volumes</p>
       <nav class="nav">
-        <a href="/">Trang chu</a>
-        <a href="/shop">Mua sach</a>
-        <a href="/auction">Dau gia</a>
-        <a href="/login">Dang nhap</a>
+        <a href="/">Home</a>
+        <a href="/shop">Shop</a>
+        <a href="/auction">Auctions</a>
+        <a href="/logout">Logout</a>
       </nav>
     </div>
   </header>
@@ -23,37 +23,37 @@
   <main class="main">
     <!-- Catalog -->
     <div class="search-section">
-      <p class="label">Danh muc thu tich hien co</p>
+      <p class="label">Available volumes</p>
       <div id="catalog" class="catalog-grid">
-        <p style="color:var(--text-muted)">Dang tai danh muc...</p>
+        <p style="color:var(--text-muted)">Loading catalog...</p>
       </div>
     </div>
 
     <!-- Buy Form -->
     <div class="buy-section">
-      <h2>Mua sach</h2>
-      <p class="hint">Chon sach va nhap so luong de mua. Tai khoan mac dinh: seeker (1000 coins)</p>
+      <h2>Buy a book</h2>
+      <p class="hint">Pick a book and enter a quantity to buy. Default account: seeker (1000 coins)</p>
       <div class="buy-form">
         <div class="field">
           <label>Book ID</label>
           <input id="bookId" type="number" placeholder="vd: 5" />
         </div>
         <div class="field">
-          <label>Quantity (so luong)</label>
+          <label>Quantity</label>
           <input id="qty" type="number" value="1" />
         </div>
         <div class="field">
-          <label>Ma uy quyen</label>
-          <input id="reserve" type="text" placeholder="(neu co)" autocomplete="off" />
+          <label>Authorization code</label>
+          <input id="reserve" type="text" placeholder="(if any)" autocomplete="off" />
         </div>
         <button class="buy-btn" onclick="doBuy()">
           <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-          Mua
+          Buy
         </button>
       </div>
-      <div class="wallet" id="wallet">Vi: <strong>1000 coins</strong></div>
+      <div class="wallet" id="wallet">Wallet: <strong>1000 coins</strong></div>
       <div class="results-panel" style="margin-top:1.2rem">
-        <pre id="buyOut">// ket qua mua sach hien o day</pre>
+        <pre id="buyOut">// purchase result appears here</pre>
       </div>
     </div>
   </main>
@@ -90,9 +90,9 @@
       document.getElementById('buyOut').textContent = JSON.stringify(data, null, 2);
       if (data.total_price !== undefined) {
         const remaining = data.balance !== undefined ? data.balance : (1000 - data.total_price);
-        document.getElementById('wallet').innerHTML = `Vi: <strong>${remaining >= 0 ? remaining : '???'} coins</strong>`;
+        document.getElementById('wallet').innerHTML = `Wallet: <strong>${remaining >= 0 ? remaining : '???'} coins</strong>`;
       }
-      showModal(data, { title: 'Ket qua mua sach' });
+      showModal(data, { title: 'Purchase result' });
     }
   </script>
 </body>

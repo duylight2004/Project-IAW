@@ -1,21 +1,21 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dau gia &mdash; Antiqua Library</title>
+  <title>Auctions &mdash; Antiqua Library</title>
   <link rel="stylesheet" href="/static/css/style.css" />
 </head>
 <body>
   <header class="header">
     <div class="header-inner">
       <h1>Antiqua Library</h1>
-      <p class="subtitle">Phien dau gia thu tich co</p>
+      <p class="subtitle">Auction sessions for ancient volumes</p>
       <nav class="nav">
-        <a href="/">Trang chu</a>
-        <a href="/shop">Mua sach</a>
-        <a href="/auction">Dau gia</a>
-        <a href="/login">Dang nhap</a>
+        <a href="/">Home</a>
+        <a href="/shop">Shop</a>
+        <a href="/auction">Auctions</a>
+        <a href="/logout">Logout</a>
       </nav>
     </div>
   </header>
@@ -23,14 +23,14 @@
   <main class="main">
     <!-- Auction Settle -->
     <div class="search-section">
-      <p class="label">He thong dau gia Antiqua</p>
+      <p class="label">Antiqua auction system</p>
     </div>
 
     <div class="auction-card">
-      <h2>Settle Bid &mdash; Ket thuc phien dau gia</h2>
+      <h2>Settle Bid &mdash; close an auction session</h2>
       <p class="desc">
-        Ket thuc mot phien dau gia dang mo. Moi lan settle can mot <strong>ve</strong> hop le
-        va <strong>ma du gia</strong> (bidder pass).
+        Close an open auction session. Each settle needs a valid <strong>ticket</strong>
+        and a <strong>bidder pass</strong>.
       </p>
 
       <div class="settle-form">
@@ -39,12 +39,12 @@
           <input id="bidId" type="number" value="1" />
         </div>
         <div class="field">
-          <label>Nguoi dat (Who)</label>
+          <label>Who</label>
           <input id="who" type="text" value="seeker" />
         </div>
         <div class="field">
-          <label>Ma du gia (bidder pass)</label>
-          <input id="bidderPass" type="text" placeholder="(can de tham gia)" autocomplete="off" />
+          <label>Bidder pass</label>
+          <input id="bidderPass" type="text" placeholder="(required to participate)" autocomplete="off" />
         </div>
         <div class="btn-group">
           <button class="settle-btn" onclick="doSettle()">
@@ -55,13 +55,13 @@
       </div>
 
       <div class="results-panel" style="margin-top:1.5rem">
-        <pre id="settleOut">// ket qua settle hien o day</pre>
+        <pre id="settleOut">// settle result appears here</pre>
       </div>
 
       <div style="margin-top:1rem">
         <button class="reset-btn" onclick="doReset()">
           <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          Reset DB (test lai)
+          Reset DB (retry)
         </button>
       </div>
     </div>
@@ -71,13 +71,13 @@
 
   <script src="/static/js/modal.js"></script>
   <script>
-    // Single settle: xin mot ve roi settle mot lan.
+    // Single settle: request one ticket then settle once.
     async function doSettle() {
       const bidId = parseInt(document.getElementById('bidId').value) || 1;
       const bidderPass = document.getElementById('bidderPass').value;
       const out = document.getElementById('settleOut');
 
-      out.textContent = '// Dang xin ve...';
+      out.textContent = '// Requesting ticket...';
       const tr = await fetch('/bids/ticket', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -86,11 +86,11 @@
       const tdata = await tr.json();
       if (!tdata.ticket) {
         out.textContent = JSON.stringify(tdata, null, 2);
-        showModal(tdata, { title: 'Ket qua Settle Bid' });
+        showModal(tdata, { title: 'Settle Bid result' });
         return;
       }
 
-      out.textContent = '// Dang gui request...';
+      out.textContent = '// Sending request...';
       const r = await fetch('/bids/settle', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -103,19 +103,19 @@
       });
       const data = await r.json();
       out.textContent = JSON.stringify(data, null, 2);
-      showModal(data, { title: 'Ket qua Settle Bid' });
+      showModal(data, { title: 'Settle Bid result' });
     }
 
     // Reset DB
     async function doReset() {
-      document.getElementById('settleOut').textContent = '// Dang reset...';
+      document.getElementById('settleOut').textContent = '// Resetting...';
       const r = await fetch('/admin/reset', {
         method: 'POST',
         headers: { 'x-reset-token': 'antiqua-reset-7f3a' }
       });
       const data = await r.json();
       document.getElementById('settleOut').textContent = 'Reset: ' + JSON.stringify(data, null, 2);
-      showModal(data, { title: 'Reset Database' });
+      showModal(data, { title: 'Reset database' });
     }
   </script>
 </body>

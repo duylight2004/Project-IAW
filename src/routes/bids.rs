@@ -42,7 +42,7 @@ pub async fn ticket(
     if !crate::routes::auth::is_logged_in(&headers) {
         return (
             axum::http::StatusCode::UNAUTHORIZED,
-            Json(json!({ "error": "unauthorized", "message": "Vui lòng đăng nhập" })),
+            Json(json!({ "error": "unauthorized", "message": "Please log in" })),
         )
             .into_response();
     }
@@ -96,7 +96,7 @@ pub async fn settle(
     if !crate::routes::auth::is_logged_in(&headers) {
         return (
             axum::http::StatusCode::UNAUTHORIZED,
-            Json(json!({ "error": "unauthorized", "message": "Vui lòng đăng nhập để tham gia đấu giá" })),
+            Json(json!({ "error": "unauthorized", "message": "Please log in to join the auction" })),
         )
             .into_response();
     }
@@ -120,7 +120,7 @@ pub async fn settle(
     if !ok_ticket {
         return (
             axum::http::StatusCode::CONFLICT,
-            Json(json!({ "error": "ticket_invalid", "message": "Vé không hợp lệ hoặc đã dùng" })),
+            Json(json!({ "error": "ticket_invalid", "message": "Ticket invalid or already used" })),
         )
             .into_response();
     }

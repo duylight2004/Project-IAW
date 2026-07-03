@@ -88,7 +88,7 @@ pub async fn buy(
     if !crate::routes::auth::is_logged_in(&headers) {
         return (
             axum::http::StatusCode::UNAUTHORIZED,
-            Json(json!({ "error": "unauthorized", "message": "Vui lòng đăng nhập để mua sách" })),
+            Json(json!({ "error": "unauthorized", "message": "Please log in to buy books" })),
         )
             .into_response();
     }
@@ -98,7 +98,7 @@ pub async fn buy(
     if form.quantity == 0 {
         return (
             axum::http::StatusCode::BAD_REQUEST,
-            Json(json!({ "error": "invalid_quantity", "message": "Số lượng phải >= 1" })),
+            Json(json!({ "error": "invalid_quantity", "message": "Quantity must be >= 1" })),
         )
             .into_response();
     }
@@ -144,7 +144,7 @@ pub async fn buy(
             axum::http::StatusCode::FORBIDDEN,
             Json(json!({
                 "error": "reserve_required",
-                "message": "Mục hạn chế cần mã uỷ quyền hợp lệ",
+                "message": "Restricted item requires a valid authorization code",
             })),
         )
             .into_response();
@@ -175,7 +175,7 @@ pub async fn buy(
                 "status": "purchased",
                 "total_price": cost,
                 "quantity": form.quantity,
-                "body": format!("Bạn đã sở hữu '{}'. Nội dung khoá đã mở: {}", book.title, FLAG2),
+                "body": format!("You now own '{}'. Unlocked content: {}", book.title, FLAG2),
                 "bidder_pass": BIDDER_PASS,
             }))
             .into_response()
@@ -184,7 +184,7 @@ pub async fn buy(
                 "status": "purchased",
                 "total_price": cost,
                 "quantity": form.quantity,
-                "body": format!("Bạn đã mua '{}'.", book.title),
+                "body": format!("You bought '{}'.", book.title),
             }))
             .into_response()
         }
