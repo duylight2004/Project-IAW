@@ -154,19 +154,44 @@ pub async fn buy(
     let cost = total_price(book.price as u32, form.quantity);
 
     if (cost as i64) <= user.coins {
-        // cấp quyền đọc bất kể quantity, chỉ cần cost <= coins
-        sqlx::query("UPDATE users SET coins = coins - ? WHERE id = ?")
+        let mut tx = match pool.begin().await {
+            Ok(t) => t,
+            Err(e) => return (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({ "error": "db_error", "message": e.to_string() })),
+            ).into_response(),
+        };
+
+        if let Err(e) = sqlx::query("UPDATE users SET coins = coins - ? WHERE id = ?")
             .bind(cost as i64)
             .bind(user.id)
-            .execute(&pool)
+            .execute(&mut *tx)
             .await
-            .ok();
-        sqlx::query("INSERT INTO purchases (user_id, book_id) VALUES (?, ?)")
+        {
+            return (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({ "error": "db_error", "message": e.to_string() })),
+            ).into_response();
+        }
+
+        if let Err(e) = sqlx::query("INSERT INTO purchases (user_id, book_id) VALUES (?, ?)")
             .bind(user.id)
             .bind(book.id)
-            .execute(&pool)
+            .execute(&mut *tx)
             .await
-            .ok();
+        {
+            return (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({ "error": "db_error", "message": e.to_string() })),
+            ).into_response();
+        }
+
+        if let Err(e) = tx.commit().await {
+            return (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({ "error": "db_error", "message": e.to_string() })),
+            ).into_response();
+        }
 
         if book.restricted == 1 {
             // nội dung thật của sách restricted — chứa FLAG 2 và BIDDER_PASS (token

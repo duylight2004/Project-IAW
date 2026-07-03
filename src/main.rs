@@ -37,6 +37,7 @@ async fn main() {
         .route("/bids/settle", post(routes::bids::settle))
         .route("/admin/reset", post(admin_reset))
         .nest_service("/static", ServeDir::new("static"))
+        .layer(axum::middleware::from_fn(logger_middleware))
         .with_state(pool);
 
     let addr = "0.0.0.0:8080";
@@ -88,4 +89,19 @@ async fn admin_reset(
     }
     db::reset_state(&pool).await;
     axum::Json(json!({ "status": "reset_ok" })).into_response()
+}
+
+async fn logger_middleware(
+    req: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> impl axum::response::IntoResponse {
+    let start = std::time::Instant::now();
+    let method = req.method().clone();
+    let path = req.uri().path().to_owned();
+
+    let response = next.run(req).await;
+
+    let duration = start.elapsed();
+    println!("LOG: {} {} -> {} ({:?})", method, path, response.status(), duration);
+    response
 }

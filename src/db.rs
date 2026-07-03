@@ -26,6 +26,8 @@ pub async fn init_pool(url: &str) -> SqlitePool {
     let opts = SqliteConnectOptions::from_str(url)
         .expect("sqlite url")
         .create_if_missing(true)
+        .journal_mode(sqlx::sqlite::SqliteJournalMode::Wal)
+        .synchronous(sqlx::sqlite::SqliteSynchronous::Normal)
         // Act 3 (TOCTOU): khi 2 request đua nhau ghi, writer thứ 2 có thể trúng
         // SQLITE_BUSY. busy_timeout cho nó chờ writer đầu xong rồi ghi tiếp,
         // đảm bảo INSERT settlement #2 thành công -> COUNT>1 -> flag ổn định.
@@ -99,15 +101,20 @@ pub async fn init_db(pool: &SqlitePool) {
 /// Reset trạng thái Act 2/3 (purchases, bids, settlements) về ban đầu.
 /// Dùng cho /admin/reset để test lặp; KHÔNG đụng tới users/flag.
 pub async fn reset_state(pool: &SqlitePool) {
-    let _ = sqlx::query("DELETE FROM purchases").execute(pool).await;
-    let _ = sqlx::query("DELETE FROM settlements").execute(pool).await;
-    let _ = sqlx::query("DELETE FROM tickets").execute(pool).await;
-    let _ = sqlx::query("UPDATE users SET coins = 1000 WHERE username = 'seeker'")
-        .execute(pool)
-        .await;
-    let _ = sqlx::query("UPDATE bids SET status = 'open', winner = NULL")
-        .execute(pool)
-        .await;
+    if let Ok(mut tx) = pool.begin().await {
+        let _ = sqlx::query("DELETE FROM purchases").execute(&mut *tx).await;
+        let _ = sqlx::query("DELETE FROM settlements").execute(&mut *tx).await;
+        let _ = sqlx::query("DELETE FROM tickets").execute(&mut *tx).await;
+        let _ = sqlx::query("UPDATE users SET coins = 1000 WHERE username = 'seeker'")
+            .execute(&mut *tx)
+            .await;
+        let _ = sqlx::query("UPDATE bids SET status = 'open', winner = NULL")
+            .execute(&mut *tx)
+            .await;
+        if tx.commit().await.is_ok() {
+            let _ = sqlx::query("VACUUM").execute(pool).await;
+        }
+    }
 }
 
 async fn seed(pool: &SqlitePool) {
