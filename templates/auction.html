@@ -3,119 +3,154 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dau gia &mdash; Antiqua Library</title>
+  <title>Đấu giá &mdash; Antiqua Library</title>
   <link rel="stylesheet" href="/static/css/style.css" />
+  <!-- Thư viện hiệu ứng chuyển động -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
 <body>
   <header class="header">
     <div class="header-inner">
-      <h1>Antiqua Library</h1>
-      <p class="subtitle">Phien dau gia thu tich co</p>
+      <h1>ANTIQUA LIBRARY</h1>
+      <p class="subtitle">Phiên đấu giá thư tịch cổ</p>
       <nav class="nav">
-        <a href="/">Trang chu</a>
-        <a href="/shop">Mua sach</a>
-        <a href="/auction">Dau gia</a>
-        <a href="/login">Dang nhap</a>
+        <a href="/"><i data-lucide="home"></i> Trang chủ</a>
+        <a href="/shop"><i data-lucide="book-open"></i> Mua sách</a>
+        <a href="/auction"><i data-lucide="gavel"></i> Đấu giá</a>
+        <a href="/login"><i data-lucide="log-in"></i> Đăng nhập</a>
       </nav>
     </div>
   </header>
 
   <main class="main">
-    <!-- Auction Settle -->
-    <div class="search-section">
-      <p class="label">He thong dau gia Antiqua</p>
+    <!-- Auction Header Info -->
+    <div class="search-section animate__animated animate__fadeInUp">
+      <p class="label"><i data-lucide="gavel" class="section-icon"></i> Hệ thống đấu giá cổ vật Antiqua</p>
     </div>
 
-    <div class="auction-card">
-      <h2>Settle Bid &mdash; Ket thuc phien dau gia</h2>
+    <!-- Settle Bid Card with 3D Tilt -->
+    <div class="auction-card animate__animated animate__fadeInUp animate__delay-1s" data-tilt data-tilt-max="4" data-tilt-glare data-tilt-max-glare="0.1">
+      <h2>Settle Bid &mdash; Kết thúc phiên đấu giá</h2>
       <p class="desc">
-        Ket thuc mot phien dau gia dang mo. Moi lan settle can mot <strong>ve</strong> hop le
-        va <strong>ma du gia</strong> (bidder pass).
+        Kết thúc một phiên đấu giá đang mở. Mỗi lần settle cần một <strong>vé (ticket)</strong> hợp lệ
+        và <strong>mã dự giá (bidder pass)</strong>.
       </p>
 
       <div class="settle-form">
         <div class="field">
-          <label>Bid ID</label>
-          <input id="bidId" type="number" value="1" />
+          <label><i data-lucide="hash" class="field-icon"></i> Bid ID</label>
+          <input id="bidId" type="number" value="1" required />
         </div>
         <div class="field">
-          <label>Nguoi dat (Who)</label>
-          <input id="who" type="text" value="seeker" />
+          <label><i data-lucide="user" class="field-icon"></i> Người đặt (Who)</label>
+          <input id="who" type="text" value="seeker" required />
         </div>
         <div class="field">
-          <label>Ma du gia (bidder pass)</label>
-          <input id="bidderPass" type="text" placeholder="(can de tham gia)" autocomplete="off" />
+          <label><i data-lucide="shield-check" class="field-icon"></i> Mã dự giá (bidder pass)</label>
+          <input id="bidderPass" type="text" placeholder="(cần để tham gia)" autocomplete="off" />
         </div>
         <div class="btn-group">
           <button class="settle-btn" onclick="doSettle()">
-            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:5px"><polyline points="20 6 9 17 4 12"/></svg>
+            <i data-lucide="gavel"></i>
             Settle Bid
           </button>
         </div>
       </div>
 
-      <div class="results-panel" style="margin-top:1.5rem">
-        <pre id="settleOut">// ket qua settle hien o day</pre>
+      <div class="results-panel" style="margin-top:2rem">
+        <div class="results-header">
+          <i data-lucide="activity" class="terminal-icon"></i>
+          <span>NHẬT KÝ ĐẤU GIÁ (AUCTION LOG)</span>
+        </div>
+        <pre id="settleOut">// Kết quả settle sẽ hiển thị ở đây...</pre>
       </div>
 
-      <div style="margin-top:1rem">
+      <div class="admin-control-section" style="margin-top:2rem; border-top: 1px solid var(--border-subtle); padding-top: 1.5rem;">
+        <p class="admin-hint"><i data-lucide="settings" class="inline-icon"></i> Dành cho Quản trị viên / Người kiểm tra đề</p>
         <button class="reset-btn" onclick="doReset()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-          Reset DB (test lai)
+          <i data-lucide="rotate-ccw"></i>
+          Reset DB (Test lại từ đầu)
         </button>
       </div>
     </div>
   </main>
 
-  <footer class="footer">Antiqua Library &copy; 2025</footer>
+  <footer class="footer">
+    <div class="footer-content">
+      <p>Antiqua Library &copy; 2025</p>
+    </div>
+  </footer>
 
+  <!-- Thư viện bổ trợ CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <script src="/static/js/modal.js"></script>
   <script>
-    // Single settle: xin mot ve roi settle mot lan.
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // Single settle: xin một vé rồi settle một lần.
     async function doSettle() {
       const bidId = parseInt(document.getElementById('bidId').value) || 1;
       const bidderPass = document.getElementById('bidderPass').value;
       const out = document.getElementById('settleOut');
 
-      out.textContent = '// Dang xin ve...';
-      const tr = await fetch('/bids/ticket', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ bid_id: bidId, bidder_pass: bidderPass })
-      });
-      const tdata = await tr.json();
-      if (!tdata.ticket) {
-        out.textContent = JSON.stringify(tdata, null, 2);
-        showModal(tdata, { title: 'Ket qua Settle Bid' });
-        return;
-      }
+      out.innerHTML = `<span class="info-text"><i data-lucide="loader-2" class="spin-icon"></i> Đang yêu cầu cấp vé đấu giá (ticket)...</span>`;
+      lucide.createIcons();
+      
+      try {
+        const tr = await fetch('/bids/ticket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bid_id: bidId, bidder_pass: bidderPass })
+        });
+        const tdata = await tr.json();
+        if (!tdata.ticket) {
+          out.textContent = JSON.stringify(tdata, null, 2);
+          showModal(tdata, { title: 'Kết quả Settle Bid' });
+          return;
+        }
 
-      out.textContent = '// Dang gui request...';
-      const r = await fetch('/bids/settle', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bid_id: bidId,
-          who: document.getElementById('who').value || 'seeker',
-          ticket: tdata.ticket,
-          bidder_pass: bidderPass
-        })
-      });
-      const data = await r.json();
-      out.textContent = JSON.stringify(data, null, 2);
-      showModal(data, { title: 'Ket qua Settle Bid' });
+        out.innerHTML = `<span class="info-text"><i data-lucide="loader-2" class="spin-icon"></i> Vé cấp thành công: <strong>${tdata.ticket}</strong>. Đang kết toán phiên đấu giá...</span>`;
+        lucide.createIcons();
+        
+        const r = await fetch('/bids/settle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bid_id: bidId,
+            who: document.getElementById('who').value || 'seeker',
+            ticket: tdata.ticket,
+            bidder_pass: bidderPass
+          })
+        });
+        const data = await r.json();
+        out.textContent = JSON.stringify(data, null, 2);
+        showModal(data, { title: 'Kết quả Settle Bid' });
+      } catch (err) {
+        out.innerHTML = `<span class="error-text"><i data-lucide="alert-triangle" class="inline-icon"></i> Lỗi kết nối hoặc thông tin không hợp lệ.</span>`;
+        lucide.createIcons();
+      }
     }
 
     // Reset DB
     async function doReset() {
-      document.getElementById('settleOut').textContent = '// Dang reset...';
-      const r = await fetch('/admin/reset', {
-        method: 'POST',
-        headers: { 'x-reset-token': 'antiqua-reset-7f3a' }
-      });
-      const data = await r.json();
-      document.getElementById('settleOut').textContent = 'Reset: ' + JSON.stringify(data, null, 2);
-      showModal(data, { title: 'Reset Database' });
+      const out = document.getElementById('settleOut');
+      out.innerHTML = `<span class="info-text"><i data-lucide="loader-2" class="spin-icon"></i> Đang thực hiện khôi phục Database...</span>`;
+      lucide.createIcons();
+      
+      try {
+        const r = await fetch('/admin/reset', {
+          method: 'POST',
+          headers: { 'x-reset-token': 'antiqua-reset-7f3a' }
+        });
+        const data = await r.json();
+        out.textContent = 'Reset: ' + JSON.stringify(data, null, 2);
+        showModal(data, { title: 'Reset Database' });
+      } catch (err) {
+        out.innerHTML = `<span class="error-text"><i data-lucide="alert-triangle" class="inline-icon"></i> Lỗi kết nối khi gửi yêu cầu reset DB.</span>`;
+        lucide.createIcons();
+      }
     }
   </script>
 </body>

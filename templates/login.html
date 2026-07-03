@@ -3,59 +3,82 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dang nhap &mdash; Antiqua Library</title>
+  <title>Đăng nhập &mdash; Antiqua Library</title>
   <link rel="stylesheet" href="/static/css/style.css" />
+  <!-- Animate.css for smooth loading effects -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 </head>
 <body>
-  <div class="login-container">
-    <div class="login-card">
-      <h1>Dang nhap</h1>
-      <p class="login-subtitle">Truy cap kho thu tich co Antiqua</p>
+  <div class="login-container animate__animated animate__zoomIn">
+    <!-- 3D Tilt effect applied on the card -->
+    <div class="login-card" data-tilt data-tilt-max="6" data-tilt-glare data-tilt-max-glare="0.15">
+      <div class="login-header-logo">
+        <i data-lucide="shield-alert" class="logo-icon"></i>
+      </div>
+      <h1>ĐĂNG NHẬP</h1>
+      <p class="login-subtitle">Truy cập kho thư tịch cổ Antiqua</p>
+      
       <!-- Thông báo nội bộ: Khách tra cứu công cộng sử dụng tài khoản seeker : seeker -->
       <form id="f">
         <div class="form-group">
-          <label for="u">Ten dang nhap</label>
-          <input name="username" id="u" autocomplete="off" placeholder="Ten dang nhap (mac dinh: seeker)" />
+          <label for="u"><i data-lucide="user" class="input-icon"></i> Tên đăng nhập</label>
+          <input name="username" id="u" autocomplete="off" placeholder="Tên đăng nhập (mặc định: seeker)" required />
         </div>
         <div class="form-group">
-          <label for="p">Mat khau</label>
-          <input name="password" id="p" type="password" placeholder="Mat khau (mac dinh: seeker)" />
+          <label for="p"><i data-lucide="lock" class="input-icon"></i> Mật khẩu</label>
+          <input name="password" id="p" type="password" placeholder="Mật khẩu (mặc định: seeker)" required />
         </div>
         <button type="submit" class="login-btn">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:6px"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
-          Vao kho
+          <i data-lucide="log-in" class="btn-icon"></i>
+          Vào kho thư tịch
         </button>
       </form>
+      
       <div class="login-result" id="result-box" style="display:none">
         <pre id="out"></pre>
       </div>
     </div>
-    <a href="/" class="back-link">
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-      Trang chu
+    
+    <a href="/" class="back-link animate__animated animate__fadeInUp animate__delay-1s">
+      <i data-lucide="arrow-left" class="back-icon"></i>
+      Quay lại Trang chủ
     </a>
   </div>
 
+  <!-- Lucide Icons and Vanilla-Tilt library -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.1/vanilla-tilt.min.js"></script>
   <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
     document.getElementById('f').addEventListener('submit', async (e) => {
       e.preventDefault();
       const body = new URLSearchParams({
         username: document.getElementById('u').value,
         password: document.getElementById('p').value,
       });
-      const r = await fetch('/login', { method: 'POST', body });
+      
+      const outElement = document.getElementById('out');
       const resultBox = document.getElementById('result-box');
+      
+      outElement.textContent = 'Đang xác thực thông tin...';
       resultBox.style.display = 'block';
+      
       try {
+        const r = await fetch('/login', { method: 'POST', body });
         const data = await r.json();
         if (data.status === 'ok') {
-          document.getElementById('out').textContent = `Đăng nhập thành công với tài khoản: ${data.user}!\nĐang chuyển hướng sang kho sách...`;
+          outElement.innerHTML = `<span class="success-text"><i data-lucide="check-circle" class="inline-icon"></i> Đăng nhập thành công với tài khoản: <strong>${data.user}</strong>! Đang chuyển hướng...</span>`;
+          lucide.createIcons();
           setTimeout(() => { window.location.href = '/shop'; }, 1200);
         } else {
-          document.getElementById('out').textContent = `Lỗi: ${data.message}`;
+          outElement.innerHTML = `<span class="error-text"><i data-lucide="x-circle" class="inline-icon"></i> Lỗi: ${data.message}</span>`;
+          lucide.createIcons();
         }
       } catch (err) {
-        document.getElementById('out').textContent = 'Lỗi kết nối hoặc thông tin không hợp lệ.';
+        outElement.innerHTML = `<span class="error-text"><i data-lucide="alert-triangle" class="inline-icon"></i> Lỗi kết nối hoặc thông tin không hợp lệ.</span>`;
+        lucide.createIcons();
       }
     });
   </script>

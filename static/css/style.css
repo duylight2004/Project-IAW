@@ -496,3 +496,194 @@ h1, h2, h3 {
 
 .modal-flag .flag-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.18em; color: #f3dfa2; margin-bottom: 0.6rem; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
 .modal-flag .flag-value { font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 1.25rem; font-weight: 700; color: #ffd700; word-break: break-all; letter-spacing: 0.04em; text-shadow: 0 0 12px rgba(255,215,0,0.6); }
+
+/* ── Custom Redesign Elements (Hero Banner & Layouts) ── */
+.hero-banner {
+  position: relative;
+  height: 380px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border-bottom: 1px solid var(--border-subtle);
+  background: url('/static/antiqua_library_banner.jpg') no-repeat center center;
+  background-size: cover;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to bottom, rgba(10, 8, 6, 0.3) 0%, rgba(10, 8, 6, 0.95) 100%);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0 1.5rem;
+}
+
+.hero-logo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(212, 175, 106, 0.08);
+  border: 1px solid var(--border-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(212, 175, 106, 0.2);
+  margin-bottom: 0.5rem;
+  backdrop-filter: blur(8px);
+}
+
+.library-logo {
+  width: 40px;
+  height: 40px;
+  color: var(--accent-gold);
+}
+
+.hero-content h1 {
+  font-size: 3.4rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(212, 175, 106, 0.4));
+  margin: 0;
+}
+
+.hero-content .subtitle {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 1.15rem;
+  color: var(--text-secondary);
+  margin: 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+}
+
+.login-header-logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.logo-icon {
+  width: 52px;
+  height: 52px;
+  color: var(--accent-gold);
+  filter: drop-shadow(0 0 15px rgba(212, 175, 106, 0.5));
+}
+
+/* ── Inline Icons Styling ── */
+.input-icon, .field-icon, .section-icon, .btn-icon, .back-icon, .badge-icon, .inline-icon, .wallet-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  color: var(--accent-gold);
+}
+
+.section-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.spin-icon {
+  width: 16px;
+  height: 16px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  color: var(--accent-gold);
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.success-text {
+  color: #4ade80;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.2);
+}
+
+.error-text {
+  color: #f87171;
+  text-shadow: 0 0 8px rgba(248, 113, 113, 0.2);
+}
+
+.info-text {
+  color: var(--text-secondary);
+}
+
+.buy-container-inner {
+  display: flex;
+  align-items: flex-end;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+  margin-top: 1.8rem;
+}
+
+.buy-container-inner .buy-form {
+  flex: 1;
+  min-width: 320px;
+}
+
+.wallet-wrapper {
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--accent-gold-light);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.terminal-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--accent-gold);
+}
+
+.admin-control-section {
+  margin-top: 2rem;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 1.5rem;
+}
+
+.admin-hint {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-hint svg {
+  color: var(--text-muted);
+}
+
