@@ -52,6 +52,15 @@ pub async fn login(State(pool): State<SqlitePool>, Form(form): Form<LoginForm>) 
     }
 }
 
+// GET /logout — xoá cookie phiên (Max-Age=0 để trình duyệt gỡ ngay) rồi về trang chủ.
+pub async fn logout() -> impl IntoResponse {
+    let cookie = "antiqua_session=; Path=/; Max-Age=0; SameSite=Lax";
+    (
+        [(axum::http::header::SET_COOKIE, cookie)],
+        axum::response::Redirect::to("/"),
+    )
+}
+
 pub fn is_logged_in(headers: &axum::http::HeaderMap) -> bool {
     headers
         .get(axum::http::header::COOKIE)

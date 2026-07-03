@@ -28,6 +28,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(index))
         .route("/login", get(login_page).post(routes::auth::login))
+        .route("/logout", get(routes::auth::logout))
         .route("/shop", get(shop_page))
         .route("/auction", get(auction_page))
         .route("/search", get(routes::books::search))
