@@ -8,7 +8,7 @@ use crate::models::{Book, User};
 use crate::pricing::total_price;
 
 // Flag 2 — KHÔNG nằm trong DB. Chỉ render trong handler khi mua thành công.
-const FLAG2: &str = "IAW{r3l34s3_0v3rfl0w_fr33_r3str1ct3d_b00k}";
+const FLAG2: &str = "DBS{r3l34s3_0v3rfl0w_fr33_r3str1ct3d_b00k}";
 
 // Token ẩn (Act 2 -> Act 3): chỉ lộ ra khi mua restricted thành công, KHÔNG nằm
 // trong DB -> SQLi của Act 1 không lấy được (giữ cách ly flag). Người chơi phải

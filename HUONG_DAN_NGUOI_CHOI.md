@@ -12,7 +12,7 @@
 
 🛠️ **Bộ công cụ nên có:** trình duyệt + tab Developer Tools (Network), `curl` hoặc Postman để gửi request thủ công, và một chút Python để tính toán.
 
-💡 **Tư duy chung:** Manh mối nằm ở **hành vi** của server (mã lỗi, nội dung trả về, độ trễ), không phải ở chữ gợi ý trên giao diện. Hãy đọc **toàn bộ** dữ liệu thu được — không chỉ phần trông giống `IAW{...}`. Có nhiều **flag giả** để gây nhiễu.
+💡 **Tư duy chung:** Manh mối nằm ở **hành vi** của server (mã lỗi, nội dung trả về, độ trễ), không phải ở chữ gợi ý trên giao diện. Hãy đọc **toàn bộ** dữ liệu thu được — không chỉ phần trông giống `DBS{...}`. Có nhiều **flag giả** để gây nhiễu.
 
 ---
 
@@ -119,6 +119,6 @@ Một chút lập trình bất đồng bộ (async) hoặc đa luồng sẽ giú
 | 2 | Kho sách | <details><summary>?</summary>Integer Overflow</details> |
 | 3 | Đấu giá | <details><summary>?</summary>Race Condition (TOCTOU)</details> |
 
-Khi có đủ **3 flag** `IAW{...}` thật (đã loại trừ flag giả), bạn đã hoàn thành challenge. 🏴
+Khi có đủ **3 flag** `DBS{...}` thật (đã loại trừ flag giả), bạn đã hoàn thành challenge. 🏴
 
 > Nhớ: 2 token ẩn (mã ở Màn 1, giấy thông hành ở Màn 2) **không phải flag** — chúng là chìa khóa nối các màn. Đọc kỹ mọi dữ liệu server trả về!

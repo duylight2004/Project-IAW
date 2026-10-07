@@ -46,7 +46,7 @@ function showModal(data, opts = {}) {
 
   // Detect flag in response
   const json = JSON.stringify(data, null, 2);
-  const flagMatch = json.match(/IAW\{[^}]+\}/);
+  const flagMatch = json.match(/DBS\{[^}]+\}/);
 
   // Determine type
   let type = opts.type || 'success';
@@ -105,7 +105,7 @@ function showModalMulti(results, opts = {}) {
   // Check for flag in any result
   let flag = null;
   results.forEach(r => {
-    const m = JSON.stringify(r).match(/IAW\{[^}]+\}/);
+    const m = JSON.stringify(r).match(/DBS\{[^}]+\}/);
     if (m) flag = m[0];
   });
 

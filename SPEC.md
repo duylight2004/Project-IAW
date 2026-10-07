@@ -1,7 +1,7 @@
 # Thư Viện Cổ Antiqua — Spec & Walkthrough (Nội bộ)
 
 > **Tài liệu thiết kế dành cho người ra đề / giám khảo. KHÔNG phát cho người chơi.**
-> CTF giáo dục môn IAW — 3 Act / 3 Flag, backend Rust (`axum` + `sqlx` + SQLite).
+> CTF giáo dục môn DBS — 3 Act / 3 Flag, backend Rust (`axum` + `sqlx` + SQLite).
 
 ---
 
@@ -12,7 +12,7 @@
 | **Web framework** | `axum` 0.7 + `tokio` (multi-thread runtime) |
 | **DB** | `sqlx` + **SQLite** (file lưu tại `/tmp/db/antiqua.db`, writable tmpfs) |
 | **Build** | **`--release`** bắt buộc; `Cargo.toml` KHÔNG bật `overflow-checks` |
-| **Flag format** | `IAW{...}` |
+| **Flag format** | `DBS{...}` |
 | **State isolation** | **Mỗi container = 1 người chơi/team**. `entrypoint.sh` init DB mới mỗi lần start. Bổ sung endpoint ẩn `POST /admin/reset` (yêu cầu header token tĩnh) để reset Act 2/3 khi cần test lặp. |
 | **ReadOnly rootfs** | rootfs readOnly + mount `emptyDir`/`tmpfs` cho `/tmp/db`. SQLite ghi dữ liệu tại đây. |
 | **Port** | 5001 (docker-compose), 8080 trong container |
@@ -25,7 +25,7 @@
 ---
 
 ### ⛓️ Chuỗi token ẩn (Chống AI one-shot) — CỐT LÕI THIẾT KẾ
-Ba Act **phụ thuộc tuần tự** vào nhau thông qua hai token ẩn (KHÔNG phải flag). Các công cụ AI thường có xu hướng chỉ trích xuất chuỗi `IAW{...}` và bỏ qua các token đi kèm, dẫn đến việc bị kẹt ở các Act tiếp theo.
+Ba Act **phụ thuộc tuần tự** vào nhau thông qua hai token ẩn (KHÔNG phải flag). Các công cụ AI thường có xu hướng chỉ trích xuất chuỗi `DBS{...}` và bỏ qua các token đi kèm, dẫn đến việc bị kẹt ở các Act tiếp theo.
 
 ```
 Act1 SQLi ─leak─> RESERVE_CODE ─/buy reserve=─> Act2 overflow ─trả─> BIDDER_PASS ─Act3─> Act3 race ─> FLAG3
@@ -38,7 +38,7 @@ Act1 SQLi ─leak─> RESERVE_CODE ─/buy reserve=─> Act2 overflow ─trả�
 | `RESERVE_CODE` | `AQ-9c4f17-RSV` | Nhúng chung với Flag 1 trong `admin.secret_note` (DB - `src/db.rs`) | Bắt buộc gửi kèm qua field `reserve` khi mua sách restricted tại `POST /buy` |
 | `BIDDER_PASS` | `BP-3f8a21-PASS` | Hằng số trong code (`src/routes/books.rs`), chỉ lộ ra khi mua restricted thành công | Bắt buộc gửi kèm khi gọi `POST /bids/ticket` và `POST /bids/settle` |
 
-* `admin.secret_note` = `IAW{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV`.
+* `admin.secret_note` = `DBS{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV`.
 * **Bảo đảm cách ly:** SQLi ở Act 1 chỉ làm lộ Flag 1 + `RESERVE_CODE`; hoàn toàn không làm lộ Flag 2, Flag 3 hay `BIDDER_PASS` (do các giá trị này nằm trực tiếp trong logic code).
 
 > ⚠️ **Quản lý cấu hình:** Chỉ cần thay đổi giá trị token/flag ở một vị trí duy nhất trong source code: `RESERVE_CODE` trong `src/db.rs`, `BIDDER_PASS` trong `src/routes/books.rs`.
@@ -53,7 +53,7 @@ CREATE TABLE users (
   username     TEXT NOT NULL UNIQUE,
   password     TEXT NOT NULL,          -- hash argon2 (login dùng prepared stmt)
   coins        INTEGER NOT NULL DEFAULT 1000,
-  secret_note  TEXT                    -- admin: IAW{...}  (Act 1)
+  secret_note  TEXT                    -- admin: DBS{...}  (Act 1)
 );
 
 CREATE TABLE books (
@@ -92,13 +92,13 @@ CREATE TABLE tickets (                 -- Act 3: nonce dùng-một-lần cho set
 ```
 
 **Seed quan trọng:**
-- `admin` với `secret_note = 'IAW{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV'` (Flag 1 thật + `RESERVE_CODE` cho Act 2).
-- `seeker` / `seeker`, `coins = 1000`, `secret_note = 'IAW{f4k3_fl4g_th1s_1s_just_4_s33k3r_n0t_4dm1n}'` (Mồi nhử).
-- `librarian`, `secret_note = 'IAW{f4k3_fl4g_l1br4r14n_s4ys_shhhh}'` (Mồi nhử).
+- `admin` với `secret_note = 'DBS{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV'` (Flag 1 thật + `RESERVE_CODE` cho Act 2).
+- `seeker` / `seeker`, `coins = 1000`, `secret_note = 'DBS{f4k3_fl4g_th1s_1s_just_4_s33k3r_n0t_4dm1n}'` (Mồi nhử).
+- `librarian`, `secret_note = 'DBS{f4k3_fl4g_l1br4r14n_s4ys_shhhh}'` (Mồi nhử).
 - 5 sách thường (chứa 1 cuốn "The Forged Manuscript" làm mồi) + 1 sách restricted `price = 9999, restricted = 1`.
-- 1 bid `status='open'` (mục tiêu Act 3) + 1 bid `status='settled'` với `winner = 'IAW{f4k3_fl4g_th1s_4uct10n_1s_4lr34dy_cl0s3d}'` (Mồi nhử cho ai dump bảng `bids`).
+- 1 bid `status='open'` (mục tiêu Act 3) + 1 bid `status='settled'` với `winner = 'DBS{f4k3_fl4g_th1s_4uct10n_1s_4lr34dy_cl0s3d}'` (Mồi nhử cho ai dump bảng `bids`).
 
-> **Mồi nhử (traps):** Nhiều chuỗi `IAW{f4k3_fl4g...}` nằm rải rác trong DB. Script exploit hoặc người chơi bắt buộc phải nhắm đúng vào `secret_note` của `admin` (`WHERE username='admin'`). Không có endpoint giải mã — flag thật được trích xuất trực tiếp.
+> **Mồi nhử (traps):** Nhiều chuỗi `DBS{f4k3_fl4g...}` nằm rải rác trong DB. Script exploit hoặc người chơi bắt buộc phải nhắm đúng vào `secret_note` của `admin` (`WHERE username='admin'`). Không có endpoint giải mã — flag thật được trích xuất trực tiếp.
 
 ### ⚠️ Thiết kế cho UNION (Act 1) — Bắt buộc khớp cột
 Endpoint `/search` chạy câu truy vấn:
@@ -144,7 +144,7 @@ let rows = sqlx::query(&sql).fetch_all(&pool).await?;
    http://localhost:5001/search?q=' UNION SELECT id, username, secret_note FROM users WHERE username='admin'-- 
    ```
    → Dòng kết quả mang `username = admin` sẽ chứa Flag 1 tại cột thứ 3:
-   `IAW{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV`
+   `DBS{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV`
 
 > **Lưu ý:** Cần chú ý URL-encode các ký tự khoảng trắng và dấu `--` khi kiểm tra bằng `curl` (ví dụ: `--%20` hoặc thêm khoảng trắng sau `--`).
 
@@ -254,7 +254,7 @@ pub async fn settle(State(pool): ..., Json(req): ...) -> impl IntoResponse {
     let n: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM settlements WHERE bid_id=?")
         .bind(req.bid_id).fetch_one(&pool).await?;
     if n > 1 {
-        return ok(json!({"flag": "IAW{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}"}));
+        return ok(json!({"flag": "DBS{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}"}));
     }
     ok(json!({"status":"settled"}))
 }

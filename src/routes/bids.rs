@@ -20,7 +20,7 @@ use crate::models::Bid;
 use crate::routes::books::BIDDER_PASS;
 
 // Flag 3 — KHÔNG nằm trong DB; server trả khi phát hiện double-settle.
-const FLAG3: &str = "IAW{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}";
+const FLAG3: &str = "DBS{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}";
 const WINDOW_MS: u64 = 250;
 
 // ─────────────────────────── POST /bids/ticket ───────────────────────────

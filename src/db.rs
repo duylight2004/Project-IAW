@@ -5,11 +5,11 @@ use sqlx::SqlitePool;
 use std::str::FromStr;
 
 // Flag 1 — nằm trong DB (users.secret_note của admin), lấy qua SQLi UNION ở /search.
-const FLAG1: &str = "IAW{l3gacy_s34rch_un10n_1nj3ct10n}";
+const FLAG1: &str = "DBS{l3gacy_s34rch_un10n_1nj3ct10n}";
 
 // Mã uỷ quyền (Act 1 -> Act 2): nhúng CHUNG với FLAG1 trong secret_note của admin.
 // Người chơi phải nhận ra note chứa CẢ flag LẪN mã này, rồi mang mã sang /buy.
-// AI thường chỉ chộp IAW{...} và bỏ qua phần `::reserve=...` -> kẹt ở Act 2.
+// AI thường chỉ chộp DBS{...} và bỏ qua phần `::reserve=...` -> kẹt ở Act 2.
 pub const RESERVE_CODE: &str = "AQ-9c4f17-RSV";
 
 /// argon2id hash của một mật khẩu (salt ngẫu nhiên mỗi lần seed).
@@ -92,7 +92,7 @@ pub async fn init_db(pool: &SqlitePool) {
     if n == 0 {
         seed(pool).await;
     } else {
-        let _ = sqlx::query("UPDATE books SET title = 'The Forged Manuscript' WHERE title LIKE '%IAW{f4k3_fl4g%'")
+        let _ = sqlx::query("UPDATE books SET title = 'The Forged Manuscript' WHERE title LIKE '%DBS{f4k3_fl4g%'")
             .execute(pool)
             .await;
     }
@@ -135,7 +135,7 @@ async fn seed(pool: &SqlitePool) {
         .bind("seeker")
         .bind(hash_password("seeker"))
         .bind(1000_i64)
-        .bind("IAW{f4k3_fl4g_th1s_1s_just_4_s33k3r_n0t_4dm1n}")
+        .bind("DBS{f4k3_fl4g_th1s_1s_just_4_s33k3r_n0t_4dm1n}")
         .execute(pool)
         .await
         .expect("seed seeker");
@@ -145,7 +145,7 @@ async fn seed(pool: &SqlitePool) {
         .bind("librarian")
         .bind(hash_password("librarian_super_secret"))
         .bind(500_i64)
-        .bind("IAW{f4k3_fl4g_l1br4r14n_s4ys_shhhh}")
+        .bind("DBS{f4k3_fl4g_l1br4r14n_s4ys_shhhh}")
         .execute(pool)
         .await
         .expect("seed librarian");
@@ -187,7 +187,7 @@ async fn seed(pool: &SqlitePool) {
     // bid đóng sẵn — fake flag cho những ai dump bảng bids
     sqlx::query("INSERT INTO bids (item, status, winner) VALUES (?, 'settled', ?)")
         .bind("False Holy Grail [replica]")
-        .bind("IAW{f4k3_fl4g_th1s_4uct10n_1s_4lr34dy_cl0s3d}")
+        .bind("DBS{f4k3_fl4g_th1s_4uct10n_1s_4lr34dy_cl0s3d}")
         .execute(pool)
         .await
         .expect("seed fake bid");

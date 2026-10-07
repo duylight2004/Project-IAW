@@ -1,6 +1,6 @@
 # Thư Viện Cổ Antiqua — CTF giáo dục
 
-Một challenge web **3 Act / 3 Flag** viết bằng **Rust** (`axum` + `sqlx` + SQLite), dùng cho môn *An toàn & Bảo mật Thông tin*. Bối cảnh: một "thư viện đấu giá thư tịch cổ". Nhiệm vụ: thu thập đủ **3 flag** dạng `IAW{...}`.
+Một challenge web **3 Act / 3 Flag** viết bằng **Rust** (`axum` + `sqlx` + SQLite), dùng cho môn *Cơ sở Dữ liệu (DBS)*. Bối cảnh: một "thư viện đấu giá thư tịch cổ". Nhiệm vụ: thu thập đủ **3 flag** dạng `DBS{...}`.
 
 > ⚠️ **Chỉ dùng cho mục đích giáo dục** trong môi trường được phép. Các lỗ hổng ở đây là **cố ý**. Không triển khai ra Internet công khai.
 
@@ -14,15 +14,15 @@ Act1 SQLi ─lấy RESERVE_CODE─▶ Act2 overflow ─lấy BIDDER_PASS─▶ A
  FLAG1                          FLAG2
 ```
 
-Ba màn **nối tiếp nhau**: mỗi màn sản ra một **token ẩn** bắt buộc để mở màn sau. Token đi *kèm* flag nhưng **không phải** flag — phải đọc kỹ toàn bộ dữ liệu thu được, không chỉ phần trông giống `IAW{...}`.
+Ba màn **nối tiếp nhau**: mỗi màn sản ra một **token ẩn** bắt buộc để mở màn sau. Token đi *kèm* flag nhưng **không phải** flag — phải đọc kỹ toàn bộ dữ liệu thu được, không chỉ phần trông giống `DBS{...}`.
 
-> **Mồi nhử (traps):** trong DB rải nhiều chuỗi `IAW{f4k3_fl4g...}` (note của `seeker`/`librarian`, một bid đã đóng). Chỉ `secret_note` của `admin` mới là flag thật.
+> **Mồi nhử (traps):** trong DB rải nhiều chuỗi `DBS{f4k3_fl4g...}` (note của `seeker`/`librarian`, một bid đã đóng). Chỉ `secret_note` của `admin` mới là flag thật.
 
 ---
 
 ## Luật chơi
 
-- Mục tiêu: tìm đủ **3 flag** `IAW{...}`.
+- Mục tiêu: tìm đủ **3 flag** `DBS{...}`.
 - **Các màn nối tiếp** — thứ thu được ở màn trước là chìa khoá mở màn sau.
 - Có nhiều flag **giả** gây nhiễu; tự kiểm chứng đâu là flag thật.
 - **Quan sát kỹ phản hồi server** (mã lỗi, nội dung, độ trễ) — manh mối nằm ở *hành vi*, không phải ở gợi ý văn bản.
@@ -116,7 +116,7 @@ antiqua-library/
    ```
 4. **Kết quả** (cột thứ 3):
    ```
-   IAW{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV
+   DBS{l3gacy_s34rch_un10n_1nj3ct10n} ::reserve=AQ-9c4f17-RSV
    ```
    ➜ **FLAG 1** + `RESERVE_CODE = AQ-9c4f17-RSV` (mang sang Act 2).
 
@@ -203,8 +203,8 @@ ANTIQUA_BIDDER_PASS=BP-3f8a21-PASS python solve_act3.py   # nếu đã có pass
 
 | # | Flag |
 |---|------|
-| 1 | `IAW{l3gacy_s34rch_un10n_1nj3ct10n}` |
-| 2 | `IAW{r3l34s3_0v3rfl0w_fr33_r3str1ct3d_b00k}` |
-| 3 | `IAW{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}` |
+| 1 | `DBS{l3gacy_s34rch_un10n_1nj3ct10n}` |
+| 2 | `DBS{r3l34s3_0v3rfl0w_fr33_r3str1ct3d_b00k}` |
+| 3 | `DBS{t0ct0u_d0ubl3_s3ttl3m3nt_r4c3}` |
 
 > Tài liệu thiết kế chi tiết (kiến trúc, tư duy chống-AI, hardening, checklist nghiệm thu) nằm ở [`SPEC.md`](SPEC.md).
