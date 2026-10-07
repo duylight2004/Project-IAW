@@ -1,4 +1,4 @@
-# Thư Viện Cổ Antiqua — CTF giáo dục (IAW)
+# Thư Viện Cổ Antiqua — CTF giáo dục
 
 Một challenge web **3 Act / 3 Flag** viết bằng **Rust** (`axum` + `sqlx` + SQLite), dùng cho môn *An toàn & Bảo mật Thông tin*. Bối cảnh: một "thư viện đấu giá thư tịch cổ". Nhiệm vụ: thu thập đủ **3 flag** dạng `IAW{...}`.
 
