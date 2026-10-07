@@ -1,4 +1,4 @@
-# ── build stage ── bắt buộc --release (Act 2 dựa vào overflow-checks=false)
+﻿# ── build stage ── bắt buộc --release (Act 2 dựa vào overflow-checks=false)
 FROM rust:slim AS build
 WORKDIR /app
 
@@ -25,9 +25,11 @@ WORKDIR /app
 COPY --from=build /app/target/release/antiqua-library /app/antiqua-library
 COPY static ./static
 COPY entrypoint.sh /app/entrypoint.sh
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh \
+    && chown -R 1000:1000 /app
 
 ENV DATABASE_URL=sqlite:///tmp/db/antiqua.db
+ENV TMPDIR=/tmp
 EXPOSE 8080
 USER 1000
 ENTRYPOINT ["/app/entrypoint.sh"]
